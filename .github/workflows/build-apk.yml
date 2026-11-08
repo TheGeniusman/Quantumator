@@ -1,1 +1,36 @@
+name: Quantumator APK bauen
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: buildozer.spec und Icon erzeugen
+        run: python main.py --prepare
+
+      - name: APK bauen
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
+        with:
+          command: buildozer android debug
+          buildozer_version: stable
+
+      - name: APK hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: Quantumator-APK
+          path: bin/*.apk
+
+
 
