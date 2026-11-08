@@ -193,6 +193,112 @@ def as_vector(vals):
         return sp.Tuple(*vals)
 
 
+
+# ───────────── Formelschreibweise: ∫ ∑ ∏ lim d/dx √ ∛ |x| ⁿ ₙ ─────────────
+SUPT = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻ⁿ⁽⁾", "0123456789+-n()")
+SUBT = str.maketrans("₀₁₂₃₄₅₆₇₈₉₊₋₍₎", "0123456789+-()")
+SUP_RE = re.compile("[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻ⁿ⁽⁾]+")
+SUB_RE = re.compile("[₀₁₂₃₄₅₆₇₈₉₊₋₍₎]+")
+LIM_RE = re.compile(r"(?<![A-Za-z0-9_])lim\s*(?=_)")
+DER_RE = re.compile(r"(?<![A-Za-z0-9_])[d∂]\s*(?:\^\s*\{?\s*(\d+)\s*\}?)?\s*/\s*[d∂]\s*([^\W\d_])"
+                    r"\s*(?:\^\s*\{?\s*(\d+)\s*\}?)?")
+SCRIPT_TOKEN = re.compile(r"-?(?:\d+(?:\.\d+)?|[^\W\d_]\w*|∞)")
+LATEX_OPTS = dict(mul_symbol="dot", inv_trig_style="power", ln_notation=True)
+
+
+def take_term(s, i):
+    """Operand bis zum nächsten +/- auf Klammerebene 0 (ohne Vorzeichen/Exponenten)."""
+    n = len(s)
+    j = i
+    while j < n and s[j] == " ":
+        j += 1
+    start, depth = j, 0
+    while j < n:
+        c = s[j]
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            if depth == 0:
+                break
+            depth -= 1
+        elif depth == 0:
+            if c in ",;=<>":
+                break
+            if c in "+-" and j > start:
+                k = j - 1
+                while k >= start and s[k] == " ":
+                    k -= 1
+                if k < start or s[k] in "^*/(+-,·×÷":
+                    pass
+                elif s[k] in "eE" and k > start and s[k - 1].isdigit():
+                    pass
+                else:
+                    break
+        j += 1
+    return s[start:j].strip(), j
+
+
+def take_operand(s, i):
+    n = len(s)
+    while i < n and s[i] == " ":
+        i += 1
+    if i < n and s[i] == "(":
+        j = match_close(s, i)
+        return s[i:j + 1], j + 1
+    m = re.match(r"\d+(?:[.,]\d+)?|[^\W\d]\w*", s[i:])
+    if m:
+        return m.group(0), i + m.end()
+    return None, i
+
+
+def parse_scripts(s, i):
+    sub = sup = None
+    while True:
+        j = i
+        while j < len(s) and s[j] == " ":
+            j += 1
+        if j < len(s) and s[j] in "_^":
+            kind, k = s[j], j + 1
+            if k < len(s) and s[k] == "{":
+                e = match_close(s, k)
+                val, i = s[k + 1:e], e + 1
+            else:
+                m = SCRIPT_TOKEN.match(s[k:])
+                if not m:
+                    break
+                val, i = m.group(0), k + m.end()
+            if kind == "_":
+                sub = val
+            else:
+                sup = val
+        else:
+            break
+    return sub, sup, i
+
+
+def find_dvar(s, start):
+    depth = 0
+    for j in range(start, len(s)):
+        c = s[j]
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif depth == 0 and c == "d":
+            m = re.match(r"d([A-Za-zα-ωΑ-Ωθ])(?![\w])", s[j:])
+            if not m:
+                continue
+            if j > start and s[j - 1] == "/":
+                continue
+            k = j - 1
+            while k >= start and (s[k].isdigit() or s[k] == "."):
+                k -= 1
+            if k >= start and (s[k].isalpha() or s[k] == "_"):
+                continue
+            return j, m.group(1), j + 2
+    return -1, "", -1
+
+
 class Engine:
     def __init__(self):
         self.vars = {}
@@ -205,8 +311,118 @@ class Engine:
         self.builtin = set(self._ns().keys())
 
     # ───────────── Hilfsfunktionen ─────────────
-    def prepare(self, s):
-        s = s.strip()
+    def _sym_ops(self, s):
+        if not re.search(r"[∫∑∏]|lim\s*_|[d∂]\s*[\^/]", s):
+            return s
+        for _ in range(60):
+            cands = []
+            for ch in "∫∑∏":
+                k = s.rfind(ch) if ch == "∫" else s.find(ch)
+                if k >= 0:
+                    cands.append((k, ch))
+            m = LIM_RE.search(s)
+            if m:
+                cands.append((m.start(), "lim"))
+            m2 = DER_RE.search(s)
+            if m2:
+                cands.append((m2.start(), "der"))
+            if not cands:
+                break
+            ints = [c for c in cands if c[1] == "∫"]
+            k, kind = max(ints) if ints else min(cands)
+            if kind == "∫":
+                i = k + 1
+                sub, sup, i = parse_scripts(s, i)
+                if sub is None and sup is None and s[i:].lstrip().startswith("("):
+                    s = s[:k] + "integral" + s[i:]
+                    continue
+                pos, var, end = find_dvar(s, i)
+                if pos < 0:
+                    raise ValueError("Beim Integral fehlt „dx“ am Ende, z. B.  ∫ x² dx  oder  ∫₀³ x² dx")
+                body = self._sym_ops(s[i:pos].strip())
+                if not body:
+                    raise ValueError("Beim Integral fehlt der Integrand.")
+                args = [body, var]
+                if sub is not None or sup is not None:
+                    if sub is None or sup is None:
+                        raise ValueError("Bitte beide Integralgrenzen angeben: ∫_{a}^{b}")
+                    args += [self._sym_ops(sub), self._sym_ops(sup)]
+                s = s[:k] + "integral(" + ";".join(args) + ")" + s[end:]
+            elif kind in ("∑", "∏"):
+                fname = "summe" if kind == "∑" else "produkt"
+                i = k + 1
+                sub, sup, i = parse_scripts(s, i)
+                if sub is None and sup is None:
+                    if s[i:].lstrip().startswith("("):
+                        s = s[:k] + fname + s[i:]
+                        continue
+                    raise ValueError("%s braucht Grenzen, z. B.  %s_{k=1}^{n} k²" % (kind, kind))
+                if sub is None or sup is None or "=" not in sub:
+                    raise ValueError("Schreibweise:  %s_{k=1}^{n} Term" % kind)
+                var, lo = sub.split("=", 1)
+                term, j = take_term(s, i)
+                if not term:
+                    raise ValueError("Nach %s fehlt der Term." % kind)
+                s = s[:k] + "%s(%s;%s;%s;%s)" % (fname, self._sym_ops(term), var.strip(),
+                                                self._sym_ops(lo), self._sym_ops(sup)) + s[j:]
+            elif kind == "lim":
+                m = LIM_RE.search(s)
+                sub, sup, i = parse_scripts(s, m.end())
+                parts = re.split(r"→|->", sub or "", maxsplit=1)
+                if sub is None or len(parts) != 2:
+                    raise ValueError("Schreibweise:  lim_{x→a} Ausdruck")
+                var, pt = parts[0].strip(), parts[1].strip()
+                pt = re.sub(r"\s*\^\s*\{?([+-])\}?\s*$", r"\1", pt)
+                fname = "limes"
+                if pt.endswith("+") and len(pt) > 1:
+                    fname, pt = "limes_plus", pt[:-1]
+                elif pt.endswith("-") and len(pt) > 1:
+                    fname, pt = "limes_minus", pt[:-1]
+                term, j = take_term(s, i)
+                if not term:
+                    raise ValueError("Nach lim fehlt der Ausdruck.")
+                s = s[:m.start()] + "%s(%s;%s;%s)" % (fname, self._sym_ops(term), var, self._sym_ops(pt)) + s[j:]
+            else:
+                m = DER_RE.search(s)
+                n = int(m.group(1) or m.group(3) or 1)
+                term, j = take_term(s, m.end())
+                if not term:
+                    raise ValueError("Nach d/dx fehlt der Ausdruck.")
+                s = s[:m.start()] + "ableitung(%s;%s;%d)" % (self._sym_ops(term), m.group(2), n) + s[j:]
+        return s
+
+    def symbolize(self, s):
+        s = SUP_RE.sub(lambda m: "^{" + m.group(0).translate(SUPT) + "}", s)
+        s = SUB_RE.sub(lambda m: "_{" + m.group(0).translate(SUBT) + "}", s)
+        for ch, n in (("∛", 3), ("∜", 4)):
+            while ch in s:
+                k = s.index(ch)
+                op, j = take_operand(s, k + 1)
+                if op is None:
+                    raise ValueError("Nach %s fehlt eine Zahl, ein Name oder eine Klammer." % ch)
+                s = s[:k] + "wurzel(%s;%d)" % (op, n) + s[j:]
+        if "|" in s and s.count("|") % 2 == 0:
+            out, opened = [], False
+            for c in s:
+                if c == "|":
+                    out.append(")" if opened else "betrag(")
+                    opened = not opened
+                else:
+                    out.append(c)
+            s = "".join(out)
+        s = self._sym_ops(s)
+        for _ in range(8):
+            t = re.sub(r"\^\{([^{}]*)\}", r"^(\1)", s)
+            if t == s:
+                break
+            s = t
+        s = re.sub(r"_\{([^{}]*)\}", lambda m: "_" + re.sub(r"\W", "", m.group(1)), s)
+        if "□" in s:
+            raise ValueError("Bitte alle Platzhalter □ ausfüllen.")
+        return s
+
+    def prepare(self, s, dec_rational=True):
+        s = self.symbolize(s.strip())
         for a, b in UNI.items():
             s = s.replace(a, b)
         s = re.sub(r"√\s*(\d+(?:[.,]\d+)?|[^\W\d]\w*)", r"wurzel(\1)", s)
@@ -219,20 +435,21 @@ class Engine:
         def dec(m):
             f = Fraction(m.group(0))
             return "Rational(%d,%d)" % (f.numerator, f.denominator)
-        s = re.sub(r"(?<![\w.])\d+\.\d+(?![\w.])", dec, s)
+        if dec_rational:
+            s = re.sub(r"(?<![\w.])\d+\.\d+(?![\w.])", dec, s)
         return s
 
-    def _parse(self, code, ns):
+    def _parse(self, code, ns, evaluate=True, gl=None):
         ns = dict(ns)
         for m in re.finditer(r"(?<![\w.])([^\W\d_]\w*)\s*\(", code):
             n = m.group(1)
             if n in ns or n in GLOBALS:
                 continue
-            if len(n) == 1 and n not in "yuvwhYUVWFGH":
+            if len(n) == 1 and n not in "fgyuvwhFGHYUVW":
                 continue
             ns[n] = sp.Function(n)
-        return parse_expr(code, local_dict=ns, global_dict=GLOBALS,
-                          transformations=TRANSFORMS, evaluate=True)
+        return parse_expr(code, local_dict=ns, global_dict=gl or GLOBALS,
+                          transformations=TRANSFORMS, evaluate=evaluate)
 
     def expr_from(self, text, free=()):
         """Textausdruck -> sympy-Ausdruck (für Graphen)."""
@@ -263,6 +480,8 @@ class Engine:
         return sorted(fs, key=lambda s: s.name)[0]
 
     def _E(self, f, x=None):
+        if isinstance(f, Out):
+            f = f.value
         if isinstance(f, UserFunc):
             e = f.expr
             if len(f.params) == 1 and isinstance(x, sp.Symbol):
@@ -567,9 +786,18 @@ class Engine:
                 raise ValueError("integral(f; x) oder integral(f; x; a; b) – Variable erwartet.")
             e = self._E(f, x)
             x = self._var(e, x)
-            if lim:
-                return sp.integrate(e, (x, lim[0], lim[1]))
-            return Out(sp.integrate(e, x), "  + C")
+            def run(ee, xx):
+                return sp.integrate(ee, (xx, lim[0], lim[1])) if lim else sp.integrate(ee, xx)
+            r = run(e, x)
+            if r.has(sp.Integral) and not x.is_real:
+                try:                      # |x|, √(x²) … gelingen oft mit reeller Variable
+                    xr = sp.Symbol(x.name, real=True)
+                    r2 = run(e.subs(x, xr), xr)
+                    if not r2.has(sp.Integral):
+                        r = r2.subs(xr, x) if not lim else r2
+                except Exception:
+                    pass
+            return r if lim else Out(r, "  + C")
         A("integral integrate", integral)
 
         def limes(f, x, p, d="+-"):
@@ -857,6 +1085,388 @@ class Engine:
                 self.one_line(p), self.one_line(sp.simplify(e.subs(x, p))), ok))
         return Raw("\n".join(lines) if lines else "Keine Wendepunkte gefunden.")
 
+    # ───────────── LaTeX-Ausgabe & Formel-Vorschau ─────────────
+    def _safe(self, fn):
+        try:
+            return fn()
+        except Exception:
+            return None
+
+    def tex_val(self, v):
+        if isinstance(v, sp.Float):
+            return self.fr(v)
+        return sp.latex(v, **LATEX_OPTS)
+
+    @staticmethod
+    def _arr(lines):
+        return lines[0] if len(lines) == 1 else r"\begin{array}{l}" + r"\\".join(lines) + r"\end{array}"
+
+    def render_tex(self, v):
+        note = ""
+        if isinstance(v, Out):
+            note, v = v.note, v.value
+        if isinstance(v, Raw) or v is None:
+            return None
+        if isinstance(v, (bool, BooleanAtom)):
+            return r"\text{Wahr}" if bool(v) else r"\text{Falsch}"
+        if isinstance(v, Sol):
+            if not v:
+                return r"\text{Keine Lösung}"
+            lines = []
+            for idx, d in enumerate(v, 1):
+                items = list(d.items())
+                if len(items) == 1 and len(v) > 1:
+                    k, val = items[0]
+                    lines.append("%s_{%d} = %s" % (sp.latex(k), idx, self.tex_val(val)))
+                else:
+                    lines.append(r",\;".join("%s = %s" % (sp.latex(k), self.tex_val(val)) for k, val in items))
+            return self._arr(lines)
+        if isinstance(v, (list, tuple, set, frozenset, sp.Tuple)):
+            items = list(v)
+            if not items:
+                return r"\varnothing"
+            return self._arr([r"%d)\;\;%s" % (n, self.tex_val(sp.sympify(it))) for n, it in enumerate(items, 1)])
+        v = sp.sympify(v)
+        if v is sp.zoo:
+            return r"\text{nicht definiert}"
+        t = self.tex_val(v)
+        if note.strip() == "+ C":
+            t += " + C"
+        return t
+
+    GL_PREVIEW = dict(GLOBALS, factorial=lambda n: sp.factorial(n, evaluate=False), Add=sp.Add, Mul=sp.Mul,
+                      Pow=sp.Pow, Gt=sp.Gt, Lt=sp.Lt, Ge=sp.Ge, Le=sp.Le, Ne=sp.Ne, Mod=sp.Mod)
+
+    def _pns(self):
+        ns = {k: v for k, v in self._ns().items() if k not in self.vars and k not in self.funcs and k != "ans"}
+        S = self
+
+        def A(names, f):
+            for n in names.split():
+                ns[n] = f
+
+        def integ(f, *a):
+            f = sp.sympify(f)
+            if len(a) == 0:
+                return sp.Integral(f, S._var(f))
+            if len(a) == 1:
+                return sp.Integral(f, a[0])
+            if len(a) == 2:
+                return sp.Integral(f, (S._var(f), a[0], a[1]))
+            return sp.Integral(f, (a[0], a[1], a[2]))
+
+        def deriv(f, x=None, n=1):
+            f = sp.sympify(f)
+            x = S._var(f, x)
+            return sp.Derivative(f, (x, int(n))) if int(n) > 1 else sp.Derivative(f, x)
+
+        def sm(*a):
+            if len(a) == 4 and isinstance(a[1], sp.Symbol):
+                return sp.Sum(a[0], (a[1], a[2], a[3]))
+            return sp.Add(*S._flat(a), evaluate=False)
+
+        def pd(*a):
+            if len(a) == 4 and isinstance(a[1], sp.Symbol):
+                return sp.Product(a[0], (a[1], a[2], a[3]))
+            return sp.Mul(*S._flat(a), evaluate=False)
+
+        A("integral integrate", integ)
+        A("ableitung diff abl", deriv)
+        A("summe sum", sm)
+        A("produkt product", pd)
+        A("limes grenzwert lim", lambda f, x, p, d="+-": sp.Limit(f, x, p, d))
+        A("limes_plus grenzwert_rechts", lambda f, x, p: sp.Limit(f, x, p, "+"))
+        A("limes_minus grenzwert_links", lambda f, x, p: sp.Limit(f, x, p, "-"))
+        A("wurzel sqrt", lambda x, n=2: sp.sqrt(x, evaluate=False) if n == 2 else sp.root(x, n, evaluate=False))
+        A("betrag abs", lambda x: sp.Abs(x, evaluate=False))
+        A("fak fakultaet fakultät", lambda n: sp.factorial(n, evaluate=False))
+        for n, f in (("sin", sp.sin), ("cos", sp.cos), ("tan", sp.tan), ("cot", sp.cot), ("sec", sp.sec),
+                     ("csc", sp.csc), ("asin arcsin", sp.asin), ("acos arccos", sp.acos),
+                     ("atan arctan", sp.atan), ("acot arccot", sp.acot)):
+            A(n, f)
+        A("ln", sp.log)
+        A("lg ld log", None)
+        for n in ("lg", "ld", "log"):
+            ns[n] = sp.Function(n)
+        ns["DEGSYM"] = sp.Symbol(r"{}^{\circ}")
+        return ns
+
+    def preview_tex(self, raw):
+        try:
+            return self._preview_tex(raw)
+        except Exception:
+            return None
+
+    def _preview_tex(self, raw):
+        raw = raw.strip().replace(":=", "=")
+        if not raw or "□" in raw:
+            return None
+        raw = raw.replace("°", "*DEGSYM")
+        s = self.prepare(raw, dec_rational=False)
+        if s.count("(") != s.count(")"):
+            return None
+        ns = self._pns()
+        if any(find_top_eq(p) >= 0 for p in split_top(s, ",")):
+            v = self._parse("[" + conv_args(s) + "]", ns, evaluate=False, gl=self.GL_PREVIEW)
+            items = list(v)
+        else:
+            v = self._parse(conv_group(s), ns, evaluate=False, gl=self.GL_PREVIEW)
+            items = [v]
+        out = []
+        for it in items:
+            if isinstance(it, (bool, BooleanAtom)) or it is None:
+                return None
+            out.append(sp.latex(it, **LATEX_OPTS))
+        return self._arr(out)
+
+    # ───────────── Graph-Analyse (Quantumator-Graph) ─────────────
+    GP_CMD = re.compile(r"^\s*(kreis|circle|strecke|segment|gerade|line|polygon|vieleck|flaeche|fläche|area)"
+                        r"\s*\((.*)\)\s*$", re.I)
+    GP_LABEL = re.compile(r"^\s*([^\W\d]\w*)\s*(?::=|=)\s*(\(.*\))\s*$")
+    GP_RANGE = re.compile(r"^(.*?)[,;]?\s*\bt\s*(?:=|in)\s*\[?\s*(.+?)\s*\.\.\s*(.+?)\]?\s*$")
+    GJS_FUNCS = {n: n for n in ("gamma", "erf", "erfc", "factorial", "Heaviside", "LambertW", "loggamma",
+                                "rroot", "zeta", "besselj", "bessely", "Ei", "Si", "Ci", "digamma",
+                                "beta", "binomial", "sinc")}
+
+    @staticmethod
+    def _gmsg(ex):
+        if isinstance(ex, (SyntaxError, TokenError)):
+            return "Syntaxfehler – Eingabe prüfen."
+        if isinstance(ex, ZeroDivisionError):
+            return "Division durch Null."
+        if isinstance(ex, TypeError):
+            return "Falsche Argumente."
+        return str(ex) or type(ex).__name__
+
+    @staticmethod
+    def _tuple_parts(s):
+        s = s.strip()
+        if s.startswith("(") and s.endswith(")"):
+            try:
+                if match_close(s, 0) == len(s) - 1:
+                    parts = split_top(s[1:-1], ",")
+                    if len(parts) >= 2:
+                        return [p.strip() for p in parts]
+            except ValueError:
+                pass
+        return None
+
+    @staticmethod
+    def _find_rel(s):
+        depth, q = 0, None
+        for i, c in enumerate(s):
+            if q:
+                if c == q:
+                    q = None
+                continue
+            if c in "\"'":
+                q = c
+            elif c in OPEN:
+                depth += 1
+            elif c in CLOSE:
+                depth -= 1
+            elif depth == 0 and c in "<>":
+                if s[i:i + 2] in ("<=", ">="):
+                    return i, s[i:i + 2]
+                return i, c
+        return -1, ""
+
+    def graph_batch(self, entries):
+        old = self.deg
+        self.deg = False                      # Graphen immer im Bogenmaß
+        ns = self._ns()
+        for k in list(self.vars):             # Rechner-Variablen stören die Schieberegler nicht
+            ns.pop(k, None)
+        G = {"ns": ns, "pts": {}}
+        out = []
+        try:
+            for text in entries:
+                try:
+                    r = self._gp(str(text), G)
+                    if r.get("kind") not in ("err", "empty"):
+                        r["tex"] = self.preview_tex(str(text))
+                    out.append(r)
+                except Exception as ex:
+                    out.append({"kind": "err", "msg": self._gmsg(ex)})
+        finally:
+            self.deg = old
+        return out
+
+    def _pe(self, s, G):
+        s = s.strip()
+        if s.count("(") != s.count(")"):
+            raise ValueError("Die Klammern passen nicht zusammen.")
+        v = self._parse(conv_group(s), G["ns"])
+        if isinstance(v, Out):
+            v = v.value
+        if isinstance(v, UserFunc):
+            if len(v.params) != 1:
+                raise ValueError("Funktion mit mehreren Variablen kann nicht gezeichnet werden.")
+            v = v.expr.subs(v.params[0], sp.Symbol("x"))
+        if isinstance(v, (Raw, Sol, list, tuple, set, sp.Tuple, sp.MatrixBase)) or v is None:
+            raise ValueError("Dieses Ergebnis kann nicht gezeichnet werden.")
+        return sp.sympify(v)
+
+    def _pt(self, arg, G):
+        a = arg.strip()
+        if a in G["pts"]:
+            return G["pts"][a]
+        parts = self._tuple_parts(a)
+        if not parts or len(parts) != 2:
+            raise ValueError("Punkt erwartet, z. B. (1; 2) oder ein benannter Punkt A.")
+        return self._pe(parts[0], G), self._pe(parts[1], G)
+
+    def _js(self, e, params):
+        e = sp.sympify(e)
+        ren = {}
+        for sy in e.free_symbols:
+            if sy.name not in ("x", "y", "t"):
+                params.add(sy.name)
+                ren[sy] = sp.Symbol("P." + sy.name)
+        e = e.xreplace(ren)
+        if e.has(sp.I):
+            raise ValueError("Komplexe Werte lassen sich nicht zeichnen.")
+        if e.has(sp.zoo, sp.nan):
+            raise ValueError("Nicht definierter Ausdruck.")
+        e = e.replace(lambda q: q.is_Pow and q.exp.is_Rational and q.exp.q > 3 and q.exp.q % 2 == 1,
+                      lambda q: sp.Function("rroot")(q.base, q.exp.q) ** q.exp.p)
+        code = sp.jscode(e, user_functions=self.GJS_FUNCS)
+        if "Not supported" in code or "//" in code:
+            raise ValueError("Ausdruck wird im Graph nicht unterstützt.")
+        return code.replace("\n", " ")
+
+    def _fin(self, kind, params, **codes):
+        d = {"kind": kind, "params": sorted(params)}
+        d.update(codes)
+        return d
+
+    def _gfunc(self, e, params):
+        e = sp.sympify(e)
+        names = {sy.name for sy in e.free_symbols}
+        if "t" in names:
+            raise ValueError("t gilt nur für Kurven  (x(t); y(t)).  Hier bitte x verwenden.")
+        if "y" in names:
+            return self._fin("implicit", params, js=self._js(e, params))
+        return self._fin("func", params, js=self._js(e, params))
+
+    def _gp(self, raw, G):
+        raw = raw.strip()
+        if not raw:
+            return {"kind": "empty"}
+        raw = raw.replace("θ", "t")
+        raw = re.sub(r"([A-Za-z_]\w*)('+)\(\s*([A-Za-z_]\w*)\s*\)",
+                     lambda m: "ableitung(%s(%s);%s;%d)" % (m.group(1), m.group(3), m.group(3), len(m.group(2))), raw)
+        if self.decimal_comma:   # "(1,2)" ist ein Punkt, kein Dezimalbruch
+            raw = re.sub(r"^(\s*(?:[^\W\d]\w*\s*(?::=|=)\s*)?)\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*$",
+                         r"\1(\2;\3)", raw)
+        params, rng = set(), None
+        m = self.GP_RANGE.match(raw)
+        if m and ".." in raw:
+            raw, rng = m.group(1).strip(), (m.group(2), m.group(3))
+        s = self.prepare(raw)
+        if s.count("(") != s.count(")"):
+            raise ValueError("Die Klammern passen nicht zusammen.")
+        name = None
+        ml = self.GP_LABEL.match(s)
+        if ml and self._tuple_parts(ml.group(2)):
+            name, s = ml.group(1), ml.group(2)
+        lo_js, hi_js = "0", "2*Math.PI"
+        if rng:
+            lo_js = self._js(self._pe(self.prepare(rng[0]), G), params)
+            hi_js = self._js(self._pe(self.prepare(rng[1]), G), params)
+
+        mc = self.GP_CMD.match(s)
+        if mc:
+            return self._gcmd(mc.group(1).lower(), split_top(mc.group(2), ","), G, params)
+
+        parts = self._tuple_parts(s)
+        if parts:
+            if len(parts) != 2:
+                raise ValueError("Nur 2D: (x; y).")
+            ex, ey = self._pe(parts[0], G), self._pe(parts[1], G)
+            if sp.Symbol("t") in (ex.free_symbols | ey.free_symbols) or rng:
+                return self._fin("param", params, jx=self._js(ex, params), jy=self._js(ey, params),
+                                 lo=lo_js, hi=hi_js)
+            if name:
+                G["pts"][name] = (ex, ey)
+            return self._fin("point", params, jx=self._js(ex, params), jy=self._js(ey, params), label=name or "")
+
+        x = sp.Symbol("x")
+        i = find_top_eq(s)
+        if i >= 0:
+            L, R = s[:i].strip(), s[i + 1:].strip()
+            mf = re.match(r"^([^\W\d]\w*)\s*\(\s*([^()]*?)\s*\)$", L)
+            if mf and mf.group(1) not in self.builtin:
+                names = [q.strip() for q in mf.group(2).split(",") if q.strip()]
+                ns2 = {k: v for k, v in G["ns"].items() if k not in names}
+                body = self._parse(conv_group(R), ns2)
+                if isinstance(body, Out):
+                    body = body.value
+                body = sp.sympify(body)
+                G["ns"][mf.group(1)] = UserFunc(mf.group(1), [sp.Symbol(n) for n in names], body)
+                if len(names) == 1:
+                    return self._gfunc(body.subs(sp.Symbol(names[0]), x), params)
+                return {"kind": "def", "name": mf.group(1), "params": []}
+            if re.match(r"^[^\W\d]\w*$", L) and L not in ("x", "y", "r", "z", "t") and L not in self.builtin:
+                e = self._pe(R, G)
+                if not e.free_symbols and e.is_number:
+                    return {"kind": "slider", "name": L, "value": float(sp.N(e)), "params": []}
+                G["ns"][L] = e
+                return {"kind": "def", "name": L, "params": []}
+            if L == "y":
+                return self._gfunc(self._pe(R, G), params)
+            if R == "y":
+                return self._gfunc(self._pe(L, G), params)
+            if L == "x":
+                e = self._pe(R, G)
+                if "x" not in {q.name for q in e.free_symbols}:
+                    return self._fin("vline", params, js=self._js(e, params))
+            if L == "r":
+                e = self._pe(R, G)
+                return self._fin("polar", params, js=self._js(e, params), lo=lo_js, hi=hi_js)
+            if L == "z":
+                e = self._pe(R, G)
+                return self._fin("surface", params, js=self._js(e, params))
+            F = self._pe(L, G) - self._pe(R, G)
+            return self._fin("implicit", params, js=self._js(F, params))
+
+        j, op = self._find_rel(s)
+        if j >= 0:
+            F = self._pe(s[:j], G) - self._pe(s[j + len(op):], G)
+            return self._fin("ineq", params, js=self._js(F, params), op=op)
+
+        e = self._pe(s, G)
+        return self._gfunc(e, params)
+
+    def _gcmd(self, cmd, args, G, params):
+        x, y = sp.Symbol("x"), sp.Symbol("y")
+        if cmd in ("kreis", "circle"):
+            if len(args) != 2:
+                raise ValueError("kreis(M; r)  –  z. B.  kreis((1;2); 3)")
+            cx, cy = self._pt(args[0], G)
+            r = self._pe(args[1], G)
+            return self._fin("implicit", params, js=self._js((x - cx) ** 2 + (y - cy) ** 2 - r ** 2, params))
+        if cmd in ("strecke", "segment", "gerade", "line"):
+            if len(args) != 2:
+                raise ValueError("%s(A; B)  –  zwei Punkte angeben" % cmd)
+            (ax, ay), (bx, by) = self._pt(args[0], G), self._pt(args[1], G)
+            kind = "segment" if cmd in ("strecke", "segment") else "line"
+            return self._fin(kind, params, jx1=self._js(ax, params), jy1=self._js(ay, params),
+                             jx2=self._js(bx, params), jy2=self._js(by, params))
+        if cmd in ("polygon", "vieleck"):
+            if len(args) < 3:
+                raise ValueError("polygon(A; B; C; …)  –  mindestens 3 Punkte")
+            pts = []
+            for a in args:
+                px, py = self._pt(a, G)
+                pts.append([self._js(px, params), self._js(py, params)])
+            return self._fin("polygon", params, pts=pts)
+        if len(args) != 3:
+            raise ValueError("flaeche(f; a; b)  –  z. B.  flaeche(x^2; 0; 2)")
+        f = self._pe(args[0], G)
+        return self._fin("area", params, js=self._js(f, params),
+                         lo=self._js(self._pe(args[1], G), params), hi=self._js(self._pe(args[2], G), params))
+
     # ───────────── Hauptauswertung ─────────────
     CALC_RE = re.compile(
         r"(?<![\w.])(ableitung|diff|abl|integral|integrate|limes|grenzwert|lim|limes_plus|limes_minus|"
@@ -866,7 +1476,8 @@ class Engine:
     def evaluate(self, text):
         raw = text.strip()
         old_deg = self.deg
-        calc = bool(self.CALC_RE.search(raw))
+        calc = bool(self.CALC_RE.search(raw) or re.search(
+            r"∫|lim\s*_|(?<![A-Za-z0-9_])[d∂]\s*(?:\^\s*\{?\s*\d+\s*\}?|[²³])?\s*/\s*[d∂]", raw))
         if calc:
             self.deg = False      # Analysis rechnet immer im Bogenmaß
         try:
@@ -932,7 +1543,9 @@ class Engine:
             self.defs["()" + name] = raw
             return {"kind": "assign", "input": raw, "def": raw,
                     "main": "%s(%s) = %s" % (name, ", ".join(names), self.one_line(sp.sympify(body))),
-                    "extra": [], "value": None}
+                    "extra": [], "value": None, "itex": self.preview_tex(raw),
+                    "tex": self._safe(lambda: "%s\\left(%s\\right) = %s" % (
+                        name, ",\\,".join(names), sp.latex(sp.sympify(body), **LATEX_OPTS)))}
 
         # Zuweisung  a=5
         m = ASSIGN_RE.match(s)
@@ -958,9 +1571,11 @@ class Engine:
             if name in ("x", "y", "z", "t"):
                 extra.append(("Hinweis", "'%s' ist jetzt eine feste Zahl und kann nicht mehr als Unbekannte "
                                          "dienen.  Löschen mit:  vergiss %s" % (name, name)))
+            vt = self._safe(lambda: self.render_tex(self.vars[name]))
             return {"kind": "assign", "input": raw, "def": raw,
                     "main": "%s = %s" % (name, main) if "\n" not in main else "%s =\n%s" % (name, main),
-                    "extra": extra, "value": self.vars[name]}
+                    "extra": extra, "value": self.vars[name], "itex": self.preview_tex(raw),
+                    "tex": ("%s = %s" % (name, vt)) if vt else None}
 
         # Gleichung / Gleichungssystem
         parts = split_top(s, ",")
@@ -1001,6 +1616,7 @@ class Engine:
             if und:
                 extra.append(("Hinweis", "Unbekannte Funktion: %s – Tippfehler? "
                                          "(Hilfe → Funktionsliste)" % ", ".join(und)))
-        return {"kind": "ok", "input": raw, "main": main, "extra": extra, "value": newans}
+        return {"kind": "ok", "input": raw, "main": main, "extra": extra, "value": newans,
+                "tex": self._safe(lambda: self.render_tex(v)), "itex": self.preview_tex(raw)}
 
 
