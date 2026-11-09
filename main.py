@@ -38,7 +38,7 @@ warn_on_root = 0
 """
 
 
-def make_icon(path, size=512):
+def make_icon(path, size=512, opaque=False):
     import zlib
     import struct
     import math
@@ -65,7 +65,7 @@ def make_icon(path, size=512):
             # abgerundetes Quadrat
             qx, qy = abs(X - 256) - (256 - 96), abs(Y - 256) - (256 - 96)
             d = math.hypot(max(qx, 0), max(qy, 0)) + min(max(qx, qy), 0) - 96
-            a = clamp(0.5 - d * S)
+            a = 1.0 if opaque else clamp(0.5 - d * S)
             t = clamp((X + Y) / 1024.0)
             col = mix((6, 10, 24), (14, 28, 62), t)
             # Ring + Schwanz (Q)
@@ -653,6 +653,17 @@ pre.help{font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wr
 #splash b{font-size:26px;letter-spacing:6px;color:var(--line);font-weight:800}
 #splash small{color:var(--dim);font-size:12px;letter-spacing:1px;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.35}}
+
+@media (min-width:900px){
+ main{display:grid;grid-template-columns:minmax(440px,5fr) 6fr;gap:12px;align-items:start;padding:12px 14px 6px}
+ #v-calc{grid-column:1;grid-row:1}
+ .view.on:not(#v-calc){grid-column:2;grid-row:1}
+ #cv{height:calc(100dvh - 380px);min-height:340px}
+ .key{min-height:62px;font-size:22px}.key.s{font-size:13.5px}
+ #inp{font-size:24px}#result{max-height:28vh}
+ .brand b{font-size:21px}.tab{font-size:13px;padding:10px 16px}
+ nav{margin-left:auto;margin-right:auto;width:min(720px,70%)}
+}
 </style>
 </head>
 <body>
@@ -767,14 +778,20 @@ $('#tSet').onclick = () => openSheet(true); $('#back').onclick = () => openSheet
 
 /* Navigation */
 const navBtns = $$('#nav button');
+let curView = 'calc', rightView = 'graph', lastWide = null;
+const isWide = () => window.matchMedia('(min-width: 900px)').matches;
 function go(v){
+  curView = v; const wide = isWide(); lastWide = wide;
+  if (wide && v !== 'calc') rightView = v;
   const i = navBtns.findIndex(b => b.dataset.v === v);
   navBtns.forEach((b, j) => b.classList.toggle('on', j === i));
   $('#ind').style.transform = 'translateX(' + (i*100) + '%)';
-  $$('.view').forEach(x => x.classList.toggle('on', x.id === 'v-' + v));
-  if (v === 'graph') graphShow();
-  $('main').scrollTo({top:0});
+  document.body.classList.toggle('wide', wide);
+  $$('.view').forEach(x => { const id = x.id.slice(2); x.classList.toggle('on', wide ? (id === 'calc' || id === rightView) : id === v); });
+  if (v === 'graph' || (wide && rightView === 'graph')) graphShow();
+  if (!wide) $('main').scrollTo({top:0});
 }
+window.addEventListener('resize', () => { if (lastWide !== null && isWide() !== lastWide) go(curView); });
 navBtns.forEach(b => b.onclick = () => { go(b.dataset.v); buzz(); });
 
 /* Tastatur */
