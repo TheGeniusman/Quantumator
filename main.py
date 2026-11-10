@@ -664,6 +664,32 @@ pre.help{font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wr
  .brand b{font-size:21px}.tab{font-size:13px;padding:10px 16px}
  nav{margin-left:auto;margin-right:auto;width:min(720px,70%)}
 }
+
+@media (max-width:899px){
+ header{padding:5px 8px}
+ .brand{padding:3px 10px 3px 6px;gap:7px}.brand svg{width:30px;height:30px}.brand b{font-size:15px;letter-spacing:1.8px}.brand small{display:none}
+ .tools{padding:3px;gap:3px}.tool{height:30px;min-width:34px;font-size:11.5px}.tool svg{width:17px;height:17px}
+ main{display:flex;flex-direction:column;padding:6px 8px 2px}
+ .frame{padding:5px;margin-bottom:6px;border-radius:16px}.inner{padding:7px;border-radius:12px}
+ #v-calc.on{display:flex;flex-direction:column;flex:1 1 auto;min-height:520px}
+ #v-calc .dsp{flex:0 0 auto}
+ #v-calc .kp{flex:1 1 auto;min-height:0;display:flex;margin-bottom:2px}
+ #v-calc .kp>.inner{flex:1;display:flex;flex-direction:column;min-height:0}
+ #kpads{flex:1;display:flex;flex-direction:column;min-height:0}
+ .pad.on{flex:1;min-height:0;grid-auto-rows:minmax(0,1fr);gap:5px}
+ .key{min-height:30px;font-size:19px;border-radius:12px}.key.s{font-size:11.5px}
+ .tabs{padding-bottom:5px;gap:4px}.tab{padding:6px 12px;font-size:11.5px}
+ #inp{font-size:19px;padding:8px 9px}.kb{width:38px;height:38px;font-size:17px}.prompt{font-size:20px}
+ #preview{margin:5px 1px 0;padding:4px 10px;font-size:16px;max-height:54px}
+ #status{margin:4px 3px;font-size:10px}
+ #result{min-height:58px;max-height:19vh;padding:7px 9px}
+ #result .main{margin:1px 0}
+ .actions{margin-top:5px;gap:5px}.btn{padding:8px 4px;font-size:11.5px;border-radius:10px}
+ nav{margin:3px 8px calc(5px + env(safe-area-inset-bottom));border-radius:16px}
+ nav button{padding:5px 0 4px;font-size:10px}nav button svg{width:18px;height:18px;margin-bottom:1px}
+ nav .ind{border-radius:14px}
+}
+@media (max-width:899px) and (max-height:760px){ #status{display:none} .echoTex{display:none} #result .echo{display:none} }
 </style>
 </head>
 <body>
@@ -684,7 +710,7 @@ pre.help{font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wr
  </div></div></header>
 <main>
  <section class="view on" id="v-calc">
-  <div class="frame pattern"><div class="inner">
+  <div class="frame pattern dsp"><div class="inner">
    <div class="irow"><span class="prompt">›</span><input id="inp" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="none" placeholder="Rechnung eingeben …">
    <button class="kb" id="kbBtn" aria-label="Systemtastatur">⌨</button></div>
    <div id="preview"></div>
@@ -692,7 +718,7 @@ pre.help{font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wr
    <div id="result"></div>
    <div class="actions"><button class="btn" id="copyBtn">Kopieren</button><button class="btn" id="useBtn">↥ Übernehmen</button><button class="btn del" id="clrBtn">Löschen</button></div>
   </div></div>
-  <div class="frame pattern"><div class="inner">
+  <div class="frame pattern kp"><div class="inner">
    <div class="tabs" id="ktabs"></div><div id="kpads"></div>
   </div></div>
  </section>
