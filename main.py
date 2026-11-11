@@ -20,7 +20,7 @@ source.include_exts = py,png
 source.exclude_dirs = .github,bin,.buildozer,__pycache__
 version = 1.2.0
 requirements = python3,sympy,mpmath
-orientation = portrait
+orientation = all
 fullscreen = 0
 icon.filename = %(source.dir)s/icon.png
 android.api = 33
@@ -165,10 +165,10 @@ KEYPADS = {
         [B("=", "=", "acc"), B("<", kind="op"), B(">", kind="op"), B("≤", "<=", "op"),
          B("≥", ">=", "op"), B("löse", "loese(¦;x)")],
         [B("System", "¦=□; □=□"), B("vereinf.", "vereinfache(¦)"), B("expand", "expandiere(¦)"),
-         B("faktor", "faktorisiere(¦)"), B("kürzen", "kuerze(¦)"), B("Partialbr.", "partialbruch(¦;x)")],
-        [B("Nullst.", "nullstellen(¦;x)"), B("einsetz.", "subs(¦;x;□)"), B("nlöse", "nloese(¦;x;□)"),
+         B("faktor", "faktorisiere(¦)"), B("kürzen", "kuerze(¦)"), B("Partial", "partialbruch(¦;x)")],
+        [B("Nullst.", "nullstellen(¦;x)"), B("einsetz", "subs(¦;x;□)"), B("nlöse", "nloese(¦;x;□)"),
          B("Poly÷", "polydiv(¦;□;x)"), B("Koeff.", "koeffizienten(¦;x)"), B("trigvf.", "trigvereinfache(¦)")],
-        [B("Extrema", "extrema(¦;x)"), B("Wendep.", "wendepunkte(¦;x)"), B("Tangente", "tangente(¦;x;□)"),
+        [B("Extrema", "extrema(¦;x)"), B("Wendep", "wendepunkte(¦;x)"), B("Tangente", "tangente(¦;x;□)"),
          B("f(x)=", "f(x)=¦"), B("g(x)=", "g(x)=¦"), B("x")],
     ],
     "Analysis": [
@@ -193,7 +193,7 @@ KEYPADS = {
     ],
     "Zahlen": [
         [B("ggT", "ggT(¦;□)"), B("kgV", "kgV(¦;□)"), B("mod", "rest(¦;□)"),
-         B("Primf.", "primfaktoren(¦)"), B("prim?", "istprim(¦)"), B("nächste P", "naechste_primzahl(¦)")],
+         B("Primf.", "primfaktoren(¦)"), B("prim?", "istprim(¦)"), B("nächste", "naechste_primzahl(¦)")],
         [B("Teiler", "teiler(¦)"), B("φ(n)", "totient(¦)"), B("Fib", "fib(¦)"),
          B("nCr", "binomial(¦;□)"), B("nPr", "perm(¦;□)"), B("modinv", "modinv(¦;□)")],
         [B("→Bin", "bin(¦)"), B("→Hex", "hex(¦)"), B("→Oct", "oct(¦)"),
@@ -661,43 +661,6 @@ pre.help{font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wr
 #splash small{color:var(--dim);font-size:12px;letter-spacing:1px;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.35}}
 
-@media (min-width:900px){
- main{display:grid;grid-template-columns:minmax(440px,5fr) 6fr;gap:12px;align-items:start;padding:12px 14px 6px}
- #v-calc{grid-column:1;grid-row:1}
- .view.on:not(#v-calc){grid-column:2;grid-row:1}
- #cv{height:calc(100dvh - 380px);min-height:340px}
- .key{min-height:62px;font-size:22px}.key.s{font-size:13.5px}
- #inp{font-size:24px}#result{max-height:28vh}
- .brand b{font-size:21px}.tab{font-size:13px;padding:10px 16px}
- nav{margin-left:auto;margin-right:auto;width:min(720px,70%)}
-}
-
-@media (max-width:899px){
- header{padding:5px 8px}
- .brand{padding:3px 10px 3px 6px;gap:7px}.brand svg{width:30px;height:30px}.brand b{font-size:15px;letter-spacing:1.8px}.brand small{display:none}
- .tools{padding:3px;gap:3px}.tool{height:30px;min-width:34px;font-size:11.5px}.tool svg{width:17px;height:17px}
- main{display:flex;flex-direction:column;padding:6px 8px 2px}
- .frame{padding:5px;margin-bottom:6px;border-radius:16px}.inner{padding:7px;border-radius:12px}
- #v-calc.on{display:flex;flex-direction:column;flex:1 1 auto;min-height:520px}
- #v-calc .dsp{flex:0 0 auto}
- #v-calc .kp{flex:1 1 auto;min-height:0;display:flex;margin-bottom:2px}
- #v-calc .kp>.inner{flex:1;display:flex;flex-direction:column;min-height:0}
- #kpads{flex:1;display:flex;flex-direction:column;min-height:0}
- .pad.on{flex:1;min-height:0;grid-auto-rows:minmax(0,1fr);gap:5px}
- .key{min-height:30px;font-size:19px;border-radius:12px}.key.s{font-size:11.5px}
- .tabs{padding-bottom:5px;gap:4px}.tab{padding:6px 12px;font-size:11.5px}
- #inp{font-size:19px;padding:8px 9px}.kb{width:38px;height:38px;font-size:17px}.prompt{font-size:20px}
- #preview{margin:5px 1px 0;padding:4px 10px;font-size:16px;max-height:54px}
- #status{margin:4px 3px;font-size:10px}
- #result{min-height:58px;max-height:19vh;padding:7px 9px}
- #result .main{margin:1px 0}
- .actions{margin-top:5px;gap:5px}.btn{padding:8px 4px;font-size:11.5px;border-radius:10px}
- nav{margin:3px 8px calc(5px + env(safe-area-inset-bottom));border-radius:16px}
- nav button{padding:5px 0 4px;font-size:10px}nav button svg{width:18px;height:18px;margin-bottom:1px}
- nav .ind{border-radius:14px}
-}
-@media (max-width:899px) and (max-height:760px){ #status{display:none} .echoTex{display:none} #result .echo{display:none} }
-
 .uhead{display:flex;gap:8px;align-items:center;margin-bottom:8px}.uhead .tabs{flex:1;padding-bottom:0;min-width:0}
 #usq{width:100%;font:16px system-ui;background:var(--inbg);color:var(--text);border:1.5px solid var(--line2);border-radius:12px;padding:11px;outline:none;margin-bottom:8px;-webkit-user-select:text;user-select:text}
 #usq:focus{border-color:var(--line)}
@@ -722,6 +685,71 @@ pre.help{font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wr
 .ucopy{flex:0 0 auto;padding:12px 14px}
 .uinfo{font-size:11.5px;color:var(--dim);margin:8px 3px 0;min-height:15px}
 @media (min-width:900px){.ucards{grid-template-columns:repeat(3,1fr)}}
+
+/* ===== Layout: Hochformat (Standard) – alles auf einem Bildschirm, ohne Scrollen ===== */
+html,body{overflow-x:hidden}
+#app{max-width:100vw;overflow:hidden}
+header{padding:5px 8px}
+.hrow{flex-wrap:nowrap;min-width:0;gap:6px}
+.brand{padding:3px 10px 3px 6px;gap:7px;min-width:0;flex:0 1 auto}.brand svg{width:30px;height:30px;flex:0 0 auto}
+.brand b{font-size:clamp(14px,2.3vmin,21px);letter-spacing:1.5px;white-space:nowrap}.brand small{display:none}
+.tools{padding:3px;gap:3px;flex:0 0 auto}.tool{height:30px;min-width:34px;font-size:11.5px}.tool svg{width:17px;height:17px}
+main{display:flex;flex-direction:column;padding:6px 8px 2px;overflow-x:hidden}
+.frame{padding:5px;margin-bottom:6px;border-radius:16px}.inner{padding:7px;border-radius:12px}
+#v-calc.on{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+#v-calc .dsp{flex:0 1 auto;min-height:0;display:flex}
+#v-calc .dsp>.inner{flex:1;display:flex;flex-direction:column;min-height:0}
+#v-calc .kp{flex:1 1 0;min-height:0;display:flex;margin-bottom:2px}
+#v-calc .kp>.inner{flex:1;display:flex;flex-direction:column;min-height:0;padding:5px}
+#inp{font-size:clamp(17px,4.6vw,26px);padding:7px 9px}.kb{width:38px;height:38px;font-size:17px;flex:0 0 auto}.prompt{font-size:20px}
+#preview{margin:5px 1px 0;padding:4px 10px;font-size:clamp(14px,4vw,20px);max-height:54px;flex:0 0 auto}
+#status{margin:4px 3px;font-size:10px;flex:0 0 auto}
+#result{flex:1 1 auto;min-height:40px;max-height:22vh;padding:6px 9px}
+#result .main{margin:1px 0}
+.actions{margin-top:5px;gap:5px;flex:0 0 auto}.btn{padding:7px 4px;font-size:clamp(10.5px,2.9vw,13px);border-radius:10px}
+#ktabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;overflow:visible;padding:0 0 4px;flex:0 0 auto}
+#ktabs .tab{padding:6px 0;font-size:clamp(10px,2.9vw,13px);text-align:center;min-width:0;overflow:hidden;white-space:nowrap;border-radius:999px}
+.tab .ts{display:none}
+@media (max-width:999px){#ktabs .tf{display:none}#ktabs .ts{display:inline}}
+#kpads{flex:1;display:flex;flex-direction:column;min-height:0}
+.pad{grid-template-columns:repeat(6,minmax(0,1fr))}
+.pad.on{flex:1;min-height:0;grid-auto-rows:minmax(0,1fr);gap:4px}
+.key{min-height:0;min-width:0;padding:0 1px;overflow:hidden;font-size:clamp(15px,4.6vw,24px);border-radius:11px}
+.key.s{font-size:clamp(9.5px,2.9vw,14px);letter-spacing:-.2px}
+nav{margin:3px 8px calc(5px + env(safe-area-inset-bottom));border-radius:16px}
+nav button{padding:5px 0 4px;font-size:10px}nav button svg{width:18px;height:18px;margin-bottom:1px}
+nav .ind{border-radius:14px;transform:translateX(calc(var(--i,0) * 100%))}
+.ucards{grid-template-columns:repeat(2,minmax(0,1fr))}
+.uhead .tabs,#usubs,.gbar{flex-wrap:wrap;overflow:visible}
+.sheet{max-height:92dvh;overflow:auto}
+@media (max-height:640px){#preview{display:none!important}#status{display:none}#result .echo,.echoTex{display:none}}
+@media (max-width:380px){.brand b{letter-spacing:.8px}.brand{padding-right:7px}.tool{min-width:30px}}
+
+/* ===== Layout: Querformat – derselbe Bildschirm, breiter angeordnet (keine zweite Seite daneben) ===== */
+@media (orientation:landscape) and (min-width:520px){
+ #app{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);height:100dvh;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+ header{grid-column:1/3;grid-row:1;padding:3px 8px}
+ .brand{padding:2px 9px 2px 5px}.brand svg{width:24px;height:24px}.brand b{font-size:clamp(13px,3vh,19px)}
+ .tool{height:26px;min-width:32px}.tools{padding:2px}
+ main{grid-column:2;grid-row:2;min-height:0;padding:6px 8px 4px 4px}
+ nav{grid-column:1;grid-row:2;flex-direction:column;width:60px;margin:6px 0 6px 8px;align-self:stretch}
+ nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 0;font-size:9px}
+ nav button svg{width:20px;height:20px;margin:0 0 1px}
+ nav .ind{left:0;right:0;top:0;bottom:auto;width:100%;height:calc(100% / 6);transform:translateY(calc(var(--i,0) * 100%))}
+ #v-calc.on{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);grid-template-rows:minmax(0,1fr);gap:8px}
+ #v-calc .dsp,#v-calc .kp{margin:0;height:100%;min-height:0}
+ #result{max-height:none;min-height:60px}
+ #status{display:none}
+ #preview{display:block;max-height:60px}
+ .key{font-size:clamp(13px,min(3.8vh,2.6vw),24px)}.key.s{font-size:clamp(9.5px,min(2.4vh,1.7vw),14px)}
+ #ktabs .tab{font-size:clamp(10px,min(2.8vh,1.5vw),13px);padding:5px 0}
+ #v-graph .inner{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:10px;align-items:start}
+ #cv{height:calc(100dvh - 130px);min-height:200px}
+ #galg{margin-top:0;max-height:calc(100dvh - 120px);overflow:auto}
+ #v-units.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:start}
+ #v-units .frame{margin:0}
+}
+@media (orientation:landscape) and (min-width:520px) and (max-height:640px){#preview{display:block!important;max-height:44px;font-size:15px}}
 </style>
 </head>
 <body>
@@ -859,26 +887,23 @@ $('#tSet').onclick = () => openSheet(true); $('#back').onclick = () => openSheet
 
 /* Navigation */
 const navBtns = $$('#nav button');
-let curView = 'calc', rightView = 'graph', lastWide = null;
-const isWide = () => window.matchMedia('(min-width: 900px)').matches;
+let curView = 'calc';
 function go(v){
-  curView = v; const wide = isWide(); lastWide = wide;
-  if (wide && v !== 'calc') rightView = v;
+  curView = v;
   const i = navBtns.findIndex(b => b.dataset.v === v);
   navBtns.forEach((b, j) => b.classList.toggle('on', j === i));
-  $('#ind').style.transform = 'translateX(' + (i*100) + '%)';
-  document.body.classList.toggle('wide', wide);
-  $$('.view').forEach(x => { const id = x.id.slice(2); x.classList.toggle('on', wide ? (id === 'calc' || id === rightView) : id === v); });
-  if (v === 'graph' || (wide && rightView === 'graph')) graphShow();
-  if (!wide) $('main').scrollTo({top:0});
+  $('#ind').style.setProperty('--i', i);
+  $$('.view').forEach(x => x.classList.toggle('on', x.id === 'v-' + v));
+  if (v === 'graph') graphShow();
+  $('main').scrollTo({top:0});
 }
-window.addEventListener('resize', () => { if (lastWide !== null && isWide() !== lastWide) go(curView); });
 navBtns.forEach(b => b.onclick = () => { go(b.dataset.v); buzz(); });
 
 /* Tastatur */
+const KSHORT = {Basis:'Basis', Funktionen:'f(x)', Komplex:'a+bi', Gleichungen:'x=', Analysis:'∫dx', Matrix:'[ ]', Zahlen:'Zahl'};
 const ktabs = $('#ktabs'), kpads = $('#kpads'), names = Object.keys(KEYPADS); let curTab = 0;
 names.forEach((name, i) => {
-  const t = document.createElement('button'); t.className = 'tab' + (i?'':' on'); t.textContent = name; t.onclick = () => { selectTab(i); buzz(); };
+  const t = document.createElement('button'); t.className = 'tab' + (i?'':' on'); t.innerHTML = '<span class="tf">' + name + '</span><span class="ts">' + (KSHORT[name] || name) + '</span>'; t.title = name; t.onclick = () => { selectTab(i); buzz(); };
   const p = document.createElement('div'); p.className = 'pad' + (i?'':' on');
   KEYPADS[name].forEach(row => row.forEach(([label, ins, kind]) => {
     const k = document.createElement('button'); k.className = 'key k-' + kind + (label.length > 3 ? ' s' : ''); k.textContent = label;
@@ -891,7 +916,6 @@ function selectTab(i){
   const dir = i >= curTab ? 1 : -1; curTab = i;
   $$('#ktabs .tab').forEach((x, j) => x.classList.toggle('on', j === i));
   $$('#kpads .pad').forEach((x, j) => { x.style.setProperty('--dir', dir); x.classList.toggle('on', j === i); });
-  $$('#ktabs .tab')[i].scrollIntoView({inline:'center', block:'nearest', behavior:'smooth'});
 }
 let sx = 0, sy = 0;
 kpads.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, {passive:true});
