@@ -113,6 +113,8 @@ import http.server
 import socketserver
 import webbrowser
 
+import einheiten_database as EDB
+
 ON_ANDROID = "ANDROID_ARGUMENT" in os.environ or "ANDROID_PRIVATE" in os.environ
 DATA_DIR = os.environ.get("ANDROID_PRIVATE") or os.path.expanduser("~")
 CONFIG_PATH = os.path.join(DATA_DIR, ".quantumator.json")
@@ -206,6 +208,11 @@ KEYPADS = {
 HELP_TEXT = """\
 QUANTUMATOR – KURZHILFE
 ═════════════════════════════════════
+EINHEITEN (Reiter „Einheiten“, 16 Kategorien, Lupe = Suche)
+ Kategorie antippen → Wert eingeben, Einheiten wählen, ⇅ tauscht, Kopieren übernimmt
+ das Ergebnis. Es gelten Nachkommastellen, Dezimaltrenner und Vibration aus den
+ Einstellungen (Rechnung intern immer volle double-Genauigkeit). EXP = Zehnerpotenz.
+
 FORMELSCHREIBWEISE (mit den Symbol-Tasten oder direkt tippen)
  Integral      ∫ x² dx · ∫₀³ x² dx · ∫_{0}^{π} sin(x) dx · ∫∫ x*y dx dy
  Summe/Produkt ∑_{k=1}^{10} k² · ∑_{k=1}^{∞} 1/k² · ∏_{k=1}^{5} k
@@ -550,7 +557,7 @@ main::-webkit-scrollbar{display:none}
 .k-num{background:var(--knum)}.k-fn{background:var(--kfn)}.k-op{background:var(--kop)}
 .k-acc{background:linear-gradient(135deg,var(--kacc),var(--kacc2));color:var(--kaccfg);border-color:var(--kacc)}.k-del{background:var(--kdel);color:var(--kdelfg)}
 nav{position:relative;display:flex;margin:6px 10px calc(8px + env(safe-area-inset-bottom));background:var(--card);border:1.5px solid var(--line);border-radius:20px;box-shadow:var(--glow);overflow:hidden}
-nav .ind{position:absolute;top:0;bottom:0;left:0;width:20%;background:linear-gradient(135deg,var(--kacc),var(--kacc2));border-radius:18px;transition:transform .38s cubic-bezier(.3,1.25,.5,1)}
+nav .ind{position:absolute;top:0;bottom:0;left:0;width:calc(100% / 6);background:linear-gradient(135deg,var(--kacc),var(--kacc2));border-radius:18px;transition:transform .38s cubic-bezier(.3,1.25,.5,1)}
 nav button{position:relative;flex:1;border:0;background:transparent;color:var(--dim);padding:8px 0 7px;font-size:10.5px;font-weight:700;transition:color .25s;touch-action:manipulation}
 nav button svg{display:block;margin:0 auto 2px;width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav button.on{color:var(--kaccfg)}
@@ -690,6 +697,31 @@ pre.help{font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wr
  nav .ind{border-radius:14px}
 }
 @media (max-width:899px) and (max-height:760px){ #status{display:none} .echoTex{display:none} #result .echo{display:none} }
+
+.uhead{display:flex;gap:8px;align-items:center;margin-bottom:8px}.uhead .tabs{flex:1;padding-bottom:0;min-width:0}
+#usq{width:100%;font:16px system-ui;background:var(--inbg);color:var(--text);border:1.5px solid var(--line2);border-radius:12px;padding:11px;outline:none;margin-bottom:8px;-webkit-user-select:text;user-select:text}
+#usq:focus{border-color:var(--line)}
+.ucards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ucard{display:flex;align-items:center;gap:10px;text-align:left;border:1.5px solid color-mix(in srgb,var(--line) 60%,transparent);background:var(--card);color:var(--text);border-radius:16px;padding:9px 10px;touch-action:manipulation;transition:transform .12s,border-color .25s,background-color .25s;min-width:0}
+.ucard:active{transform:scale(.97)}
+.ucard.on{border-color:var(--line);background:color-mix(in srgb,var(--kacc) 14%,var(--card))}
+.ucard .bd{flex:0 0 auto;min-width:42px;height:42px;padding:0 4px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--kacc),var(--kacc2));color:var(--kaccfg);font:800 12px ui-monospace,Menlo,Consolas,monospace}
+.ucard b{display:block;font-size:14px;line-height:1.2}.ucard small{color:var(--dim);font-size:11px}
+.uhd{font-size:15px;color:var(--line);letter-spacing:.8px;margin-bottom:8px}
+.ubox{border:1.5px solid color-mix(in srgb,var(--line) 60%,transparent);background:var(--card);border-radius:16px;padding:10px}
+.urow{display:flex;gap:7px;align-items:center}
+#uin{flex:1;min-width:0;font:700 24px ui-monospace,Menlo,Consolas,monospace;background:var(--inbg);color:var(--text);border:1.5px solid var(--line2);border-radius:12px;padding:10px;outline:none;-webkit-user-select:text;user-select:text}
+#uin:focus{border-color:var(--line)}
+.ubtn{flex:0 0 auto;min-width:44px;height:46px;border:1px solid var(--line2);background:var(--kfn);color:var(--text);border-radius:12px;font-weight:800;font-size:12px;touch-action:manipulation;transition:transform .12s}
+.ubtn:active{transform:scale(.92)}
+.usel{width:100%;margin-top:8px;font:600 15px system-ui;background-color:var(--inbg);color:var(--text);border:1.5px solid var(--line2);border-radius:12px;padding:11px 34px 11px 11px;outline:none;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--line) 50%),linear-gradient(135deg,var(--line) 50%,transparent 50%);background-position:calc(100% - 19px) 50%,calc(100% - 13px) 50%;background-size:6px 6px,6px 6px;background-repeat:no-repeat}
+.usel:focus{border-color:var(--line)}
+.uswap{display:block;width:60%;margin:8px auto;flex:none}
+.uout{flex:1;min-width:0;font:700 24px ui-monospace,Menlo,Consolas,monospace;overflow-x:auto;white-space:nowrap;padding:8px 2px;-webkit-user-select:text;user-select:text}
+.uout small{font:600 13px system-ui;color:var(--dim);margin-left:8px}
+.ucopy{flex:0 0 auto;padding:12px 14px}
+.uinfo{font-size:11.5px;color:var(--dim);margin:8px 3px 0;min-height:15px}
+@media (min-width:900px){.ucards{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
@@ -746,6 +778,28 @@ pre.help{font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wr
     <div class="empty" style="padding:8px;font-size:11.5px;line-height:1.5">Ziehen = verschieben · zwei Finger = zoomen (waagerecht/senkrecht = nur eine Achse)<br>Tippen = Koordinaten · Doppeltippen = einpassen · ◎ = Nullstellen, Extrema, Schnittpunkte</div>
    </div>
   </div></div></section>
+ <section class="view" id="v-units">
+  <div class="frame pattern"><div class="inner">
+   <div class="uhead"><div class="tabs" id="ugroups"></div>
+    <button class="kb" id="uSearchBtn" aria-label="Suche"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></div>
+   <div id="usearch" hidden><input id="usq" placeholder="Einheit suchen … (z. B. Fuß, kWh, Mach, Quetta)" autocomplete="off" autocapitalize="off" spellcheck="false"><ul class="list" id="usres"></ul></div>
+   <div class="ucards" id="ucards"></div>
+  </div></div>
+  <div class="frame pattern" id="uconv" hidden><div class="inner">
+   <div class="uhd"><b id="uctitle"></b></div>
+   <div class="tabs" id="usubs"></div>
+   <div class="ubox">
+    <div class="urow"><input id="uin" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="decimal" aria-label="Wert"><button class="ubtn" id="uPM" aria-label="Vorzeichen">±</button><button class="ubtn" id="uE" aria-label="Exponent">EXP</button></div>
+    <select class="usel" id="ufrom" aria-label="Von Einheit"></select>
+   </div>
+   <button class="btn uswap" id="uSwap">⇅ Tauschen</button>
+   <div class="ubox">
+    <div class="urow"><div class="uout"><span id="uoutn">–</span><small id="uouts"></small></div><button class="btn ucopy" id="uCopy">Kopieren</button></div>
+    <select class="usel" id="uto" aria-label="In Einheit"></select>
+   </div>
+   <div class="uinfo" id="uinfo"></div>
+  </div></div>
+ </section>
  <section class="view" id="v-help"><div class="frame pattern"><div class="inner"><pre class="help" id="helptxt"></pre></div></div></section>
 </main>
 <nav id="nav"><div class="ind" id="ind"></div>
@@ -754,6 +808,7 @@ pre.help{font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wr
  <button data-v="vars"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>Variablen</button>
  <button data-v="graph"><svg viewBox="0 0 24 24"><path d="M3 20h18M3 20V4M6 16c3-9 5-9 8-2s4 4 5-6"/></svg>Graph</button>
  <button data-v="help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>Hilfe</button>
+ <button data-v="units"><svg viewBox="0 0 24 24"><rect x="2.5" y="7.5" width="19" height="9" rx="1.5"/><path d="M6.5 7.5v3M10.5 7.5v4.5M14.5 7.5v3M18.5 7.5v4.5"/></svg>Einheiten</button>
 </nav>
 </div>
 <div class="back" id="back"></div>
@@ -776,7 +831,7 @@ function applyTheme(){
   $('#themecolor').content = st.dark ? '#03050A' : '#ffffff';
   $('#tTheme').innerHTML = st.dark ? SUN : MOON;
   $('#tAngle').textContent = st.deg ? 'GRAD' : 'RAD';
-  setStatus(); if (typeof refreshColors === 'function'){ refreshColors(); draw(); }
+  setStatus(); if (typeof refreshColors === 'function'){ refreshColors(); draw(); } if (typeof unitsRefresh === 'function') unitsRefresh();
 }
 function setStatus(t){
   $('#status').textContent = t || ((st.deg?'Grad':'Bogenmaß') + ' · ' + (st.dec?'Dezimalkomma · Argumente mit ;':'Dezimalpunkt') + ' · ' + st.digits + ' Stellen');
@@ -1588,9 +1643,188 @@ const MK = ['x','y','t','π','^','²','√(','(',')',';','|','sin(','cos(','tan(
   b.onclick = () => { const t = lastIn || (items[0] && items[0].inEl); if (!t) return; let s = k === 'π' ? 'pi' : k === '√(' ? 'sqrt(' : k === '²' ? '^2' : k;
     const a = t.selectionStart ?? t.value.length, z = t.selectionEnd ?? a; t.setRangeText(s, a, z, 'end'); t.focus(); t.dispatchEvent(new Event('input')); buzz(4); }; box.append(b); }); })();
 
+/*UN-BEGIN*/
+const NL = {
+  c:{to:x=>x, from:b=>b}, f:{to:x=>(x-32)/1.8, from:b=>b*1.8+32}, k:{to:x=>x-273.15, from:b=>b+273.15}, r:{to:x=>(x-491.67)/1.8, from:b=>b*1.8+491.67},
+  l100:{to:x=>x, from:b=>b}, kmpl:{to:x=>100/x, from:b=>100/b},
+  mpgus:{to:x=>100*3.785411784/1.609344/x, from:b=>100*3.785411784/1.609344/b},
+  mpguk:{to:x=>100*4.54609/1.609344/x, from:b=>100*4.54609/1.609344/b}
+};
+const unitToBase = (u, x) => u.k ? NL[u.k].to(x) : x * u.f;
+const unitFromBase = (u, b) => u.k ? NL[u.k].from(b) : b / u.f;
+const convertUnit = (x, a, b) => unitFromBase(b, unitToBase(a, x));
+const normS = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/µ/g, 'u').replace(/ß/g, 'ss');
+function expandExp(s){
+  const m = /^(-?)(\d)(?:\.(\d+))?e([+-]\d+)$/.exec(s); if (!m) return s;
+  const sign = m[1], digits = m[2] + (m[3] || ''), exp = parseInt(m[4], 10);
+  if (exp < 0) return sign + '0.' + '0'.repeat(-exp - 1) + digits;
+  const pad = exp - (digits.length - 1);
+  return sign + (pad >= 0 ? digits + '0'.repeat(pad) : digits.slice(0, exp + 1) + '.' + digits.slice(exp + 1));
+}
+const trimZeros = s => s.includes('.') ? s.replace(/0+$/, '').replace(/\.$/, '') : s;
+const SUPS = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
+/* Anzeige: Rechnung bleibt double – gekürzt wird NUR hier (Einstellung „Nachkommastellen“ + „Dezimaltrenner“) */
+function fmtCore(x, pretty){
+  if (!isFinite(x)) return '–';
+  if (x === 0) return '0';
+  const d = Math.max(0, Math.min(100, st.digits | 0)), ax = Math.abs(x), sep = st.dec ? ',' : '.';
+  let s;
+  if (ax < Math.pow(10, -d) || ax >= 1e15){
+    let [m, e] = x.toExponential(14).split('e'); m = trimZeros(m).replace('.', sep); e = e.replace('+', '');
+    return pretty ? m + '×10' + e.split('').map(c => SUPS[c] || c).join('') : m + 'e' + e;
+  }
+  s = x.toPrecision(15); if (s.includes('e')) s = expandExp(s);
+  const dec = (s.split('.')[1] || '').length;
+  if (dec > d) s = Number(s).toFixed(d);
+  s = trimZeros(s); if (s === '-0' || s === '') s = '0';
+  return s.replace('.', sep);
+}
+const fmtDisplay = x => fmtCore(x, true), fmtRaw = x => fmtCore(x, false);
+/* Eingabe: Punkt UND Komma erlaubt, angezeigt wird immer der gewählte Trenner */
+function sanitizeNum(v){
+  v = String(v).replace(/−/g, '-').replace(/[^0-9.,eE+\-]/g, '');
+  let out = '', sepSeen = false, eSeen = false;
+  for (const c of v){
+    if (c === '.' || c === ','){ if (sepSeen || eSeen) continue; sepSeen = true; out += st.dec ? ',' : '.'; }
+    else if (c === 'e' || c === 'E'){ if (eSeen || !/\d/.test(out)) continue; eSeen = true; out += 'e'; }
+    else if (c === '+' || c === '-'){ const l = out[out.length - 1]; if (out === '' || l === 'e') out += c; }
+    else out += c;
+  }
+  return out;
+}
+function parseNum(v){
+  const s = String(v).trim().replace(',', '.');
+  return /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s) ? Number(s) : NaN;
+}
+const DIGS = '0123456789abcdefghijklmnopqrstuvwxyz';
+function sanitizeRadix(v, base){
+  v = String(v).toLowerCase().replace(/\s/g, ''); let out = '';
+  for (let i = 0; i < v.length; i++){ const c = v[i]; if (c === '-' && out === '') out += c; else if (DIGS.indexOf(c) >= 0 && DIGS.indexOf(c) < base) out += c; }
+  return out.toUpperCase();
+}
+function convRadix(str, from, to){
+  let s = String(str).trim().toLowerCase().replace(/\s/g, ''), neg = false;
+  if (s[0] === '-'){ neg = true; s = s.slice(1); } if (!s) return null;
+  let n = 0n; const B = BigInt(from);
+  for (const ch of s){ const v = DIGS.indexOf(ch); if (v < 0 || v >= from) return undefined; n = n * B + BigInt(v); }
+  return (neg && n !== 0n ? '-' : '') + n.toString(to).toUpperCase();
+}
+function buildIndex(DB){
+  const out = [];
+  for (const key in DB.cats){ const c = DB.cats[key];
+    c.subs.forEach((sb, si) => sb.units.forEach(u => out.push({cat:key, sub:si, unit:u, hay:normS(u.n + ' ' + u.s + ' ' + c.name + ' ' + (sb.name || ''))}))); }
+  return out;
+}
+function searchUnits(idx, q){
+  q = normS(q.trim()); if (!q) return [];
+  const w = q.split(/\s+/), hits = idx.filter(e => w.every(t => e.hay.includes(t)));
+  hits.sort((a, b) => (normS(b.unit.s) === q) - (normS(a.unit.s) === q) || (normS(b.unit.n).startsWith(q)) - (normS(a.unit.n).startsWith(q)));
+  return hits.slice(0, 40);
+}
+/*UN-END*/
+
+
+/* ===== Einheiten-Umrechner ===== */
+const UNITS_DB = __UNITS__;
+const UST = Object.assign({cat:null, sub:0, from:{}, to:{}, val:'1', subs:{}}, (() => { try { return JSON.parse(localStorage.getItem('qm_units') || '{}'); } catch(e){ return {}; } })());
+const UIDX = buildIndex(UNITS_DB);
+let uGroup = 'alltag', unitsReady = false;
+const usave = () => { try { localStorage.setItem('qm_units', JSON.stringify({cat:UST.cat, sub:UST.sub, from:UST.from, to:UST.to, val:UST.val, subs:UST.subs})); } catch(e){} };
+const ucount = c => c.subs.reduce((n, s) => n + s.units.length, 0);
+const ukey = () => UST.cat + ':' + UST.sub;
+const ucur = () => UNITS_DB.cats[UST.cat].subs[UST.sub];
+const ufind = (s, id) => s.units.find(u => u.id === id) || s.units[0];
+const groupOfCat = k => (UNITS_DB.groups.find(g => g.cats.includes(k)) || UNITS_DB.groups[0]).id;
+function ensureUnits(){
+  const s = ucur(), k = ukey();
+  if (!s.units.some(u => u.id === UST.from[k])) UST.from[k] = s.def[0];
+  if (!s.units.some(u => u.id === UST.to[k])) UST.to[k] = s.def[1];
+}
+function renderUnits(){
+  const g = $('#ugroups'); g.innerHTML = '';
+  UNITS_DB.groups.forEach(gr => { const b = el('button', gr.name, 'tab' + (gr.id === uGroup ? ' on' : '')); b.onclick = () => { uGroup = gr.id; renderUnits(); buzz(); }; g.append(b); });
+  const box = $('#ucards'); box.innerHTML = '';
+  UNITS_DB.groups.find(x => x.id === uGroup).cats.forEach(key => {
+    const c = UNITS_DB.cats[key], b = document.createElement('button'); b.className = 'ucard' + (UST.cat === key ? ' on' : '');
+    const tx = document.createElement('span'); tx.style.minWidth = 0; tx.append(el('b', c.name), el('small', ucount(c) + ' Einheiten'));
+    b.append(el('span', c.badge, 'bd'), tx); b.onclick = () => { selectCat(key); buzz(); }; box.append(b);
+  });
+}
+function selectCat(key, o){
+  o = o || {}; const changed = UST.cat !== key;
+  UST.cat = key; UST.sub = o.sub !== undefined ? o.sub : (UST.subs[key] || 0); UST.subs[key] = UST.sub;
+  ensureUnits(); if (o.from) UST.from[ukey()] = o.from;
+  if (changed || o.from) UST.val = ucur().units[0].radix ? '255' : '1';
+  uGroup = groupOfCat(key); usave(); renderUnits(); renderConv();
+  setTimeout(() => { const c = $('#uconv'); if (c && !c.hidden) c.scrollIntoView({behavior:'smooth', block:'nearest'}); }, 60);
+}
+function fillSelect(sel, units, cur){
+  sel.innerHTML = ''; units.forEach(u => { const o = document.createElement('option'); o.value = u.id; o.textContent = u.n + (u.s ? '  (' + u.s + ')' : ''); if (u.id === cur) o.selected = true; sel.append(o); });
+}
+function renderConv(){
+  const conv = $('#uconv'); if (!UST.cat){ conv.hidden = true; return; }
+  conv.hidden = false; ensureUnits();
+  const c = UNITS_DB.cats[UST.cat], s = ucur(), k = ukey();
+  $('#uctitle').textContent = (c.name + (s.name ? ' · ' + s.name : '')).toUpperCase();
+  const sb = $('#usubs'); sb.innerHTML = '';
+  if (c.subs.length > 1){ sb.style.display = 'flex'; c.subs.forEach((x, i) => { const b = el('button', x.name, 'tab' + (i === UST.sub ? ' on' : '')); b.onclick = () => { UST.sub = i; UST.subs[UST.cat] = i; ensureUnits(); usave(); renderConv(); buzz(); }; sb.append(b); }); }
+  else sb.style.display = 'none';
+  fillSelect($('#ufrom'), s.units, UST.from[k]); fillSelect($('#uto'), s.units, UST.to[k]);
+  const radix = !!s.units[0].radix; $('#uE').style.display = radix ? 'none' : ''; $('#uin').inputMode = radix ? 'text' : 'decimal';
+  const fu = ufind(s, UST.from[k]);
+  UST.val = radix ? sanitizeRadix(UST.val, fu.radix) : sanitizeNum(UST.val);
+  $('#uin').value = UST.val; uCalc();
+}
+function uCalc(){
+  if (!UST.cat) return; const s = ucur(), k = ukey(), fu = ufind(s, UST.from[k]), tu = ufind(s, UST.to[k]);
+  const outN = $('#uoutn'), info = $('#uinfo'); UST.res = NaN; UST.resRaw = '';
+  $('#uouts').textContent = tu.s;
+  if (fu.radix){
+    const r = convRadix(UST.val, fu.radix, tu.radix);
+    outN.textContent = r === undefined ? '!' : r === null ? '–' : r; UST.resRaw = typeof r === 'string' ? r : '';
+    info.textContent = 'Nur ganze Zahlen · Basis ' + fu.radix + ' → Basis ' + tu.radix; return;
+  }
+  const x = parseNum(UST.val);
+  if (!isFinite(x)){ outN.textContent = '–'; info.textContent = ''; return; }
+  const y = convertUnit(x, fu, tu); UST.res = y; outN.textContent = fmtDisplay(y);
+  const one = convertUnit(1, fu, tu); info.textContent = '1 ' + fu.s + ' = ' + fmtDisplay(one) + ' ' + tu.s;
+}
+function unitsRefresh(){ if (unitsReady && UST.cat) renderConv(); }
+$('#uin').addEventListener('input', e => {
+  const t = e.target, pos = t.selectionStart, before = t.value, s = ucur(), fu = ufind(s, UST.from[ukey()]);
+  const v = fu.radix ? sanitizeRadix(before, fu.radix) : sanitizeNum(before);
+  if (v !== before){ t.value = v; const np = Math.max(0, pos - (before.length - v.length)); try { t.setSelectionRange(np, np); } catch(x){} }
+  UST.val = v; usave(); uCalc();
+});
+$('#ufrom').onchange = e => { UST.from[ukey()] = e.target.value; usave(); renderConv(); };
+$('#uto').onchange = e => { UST.to[ukey()] = e.target.value; usave(); renderConv(); };
+$('#uPM').onclick = () => { UST.val = UST.val.startsWith('-') ? UST.val.slice(1) : '-' + UST.val; $('#uin').value = UST.val; usave(); uCalc(); buzz(); };
+$('#uE').onclick = () => { if (/\d/.test(UST.val) && !UST.val.includes('e')){ UST.val += 'e'; $('#uin').value = UST.val; usave(); uCalc(); $('#uin').focus(); } buzz(); };
+$('#uSwap').onclick = () => {
+  const s = ucur(), k = ukey(), a = UST.from[k]; UST.from[k] = UST.to[k]; UST.to[k] = a;
+  if (s.units[0].radix){ if (UST.resRaw) UST.val = UST.resRaw; } else if (isFinite(UST.res)) UST.val = fmtRaw(UST.res);
+  usave(); renderConv(); buzz(10);
+};
+$('#uCopy').onclick = async () => { const t = $('#uoutn').textContent; if (!t || t === '–' || t === '!') return; await copyText(t); const b = $('#uCopy'); b.textContent = '✓ Kopiert'; buzz(12); setTimeout(() => { b.textContent = 'Kopieren'; }, 1300); };
+function renderUsearch(q){
+  const ul = $('#usres'); ul.innerHTML = ''; const hits = searchUnits(UIDX, q);
+  if (!q.trim()){ return; }
+  if (!hits.length){ ul.append(el('div', 'Keine Einheit gefunden.', 'empty')); return; }
+  hits.forEach(h => { const li = document.createElement('li'), sp = document.createElement('span');
+    sp.append(h.unit.n + (h.unit.s ? '  (' + h.unit.s + ')' : ''), document.createElement('br'), el('small', UNITS_DB.cats[h.cat].name + (UNITS_DB.cats[h.cat].subs[h.sub].name ? ' · ' + UNITS_DB.cats[h.cat].subs[h.sub].name : '')));
+    li.append(sp); li.onclick = () => { $('#usearch').hidden = true; $('#usq').value = ''; selectCat(h.cat, {sub:h.sub, from:h.unit.id}); buzz(); }; ul.append(li); });
+}
+$('#uSearchBtn').onclick = () => { const p = $('#usearch'); p.hidden = !p.hidden; if (!p.hidden) $('#usq').focus(); else { $('#usq').value = ''; renderUsearch(''); } buzz(); };
+$('#usq').addEventListener('input', e => renderUsearch(e.target.value));
+function unitsInit(){
+  if (UST.cat && !UNITS_DB.cats[UST.cat]) UST.cat = null;
+  if (UST.cat){ uGroup = groupOfCat(UST.cat); if (UST.sub >= UNITS_DB.cats[UST.cat].subs.length) UST.sub = 0; }
+  unitsReady = true; renderUnits(); renderConv();
+}
+
 /* Start */
 $('#helptxt').textContent = HELP;
-applyTheme(); renderHist(); renderVars(); showWelcome(); renderAlg(); renderSliders(); syncBar(); go('calc');
+applyTheme(); renderHist(); renderVars(); showWelcome(); renderAlg(); renderSliders(); syncBar(); unitsInit(); go('calc');
 async function boot(){
   const t0 = Date.now();
   for (;;){
@@ -1610,7 +1844,8 @@ boot();
 
 PAGE = (PAGE_TEMPLATE
         .replace("__KEYPADS__", json.dumps(KEYPADS, ensure_ascii=False))
-        .replace("__HELP__", json.dumps(HELP_TEXT, ensure_ascii=False)))
+        .replace("__HELP__", json.dumps(HELP_TEXT, ensure_ascii=False))
+        .replace("__UNITS__", json.dumps(EDB.DB, ensure_ascii=False)))
 
 
 if __name__ == "__main__":
