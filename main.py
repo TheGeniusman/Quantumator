@@ -612,28 +612,32 @@ body.gfs.alg #galg{transform:none}
 .echoTex{font-size:15px;color:var(--dim);overflow-x:auto;margin-bottom:2px}
 .resTex{overflow-x:auto;padding:4px 0;color:var(--text);cursor:pointer}
 .atex{margin:-2px 0 7px 37px;font-size:16px;overflow-x:auto;color:var(--text)}
-.tex{display:inline-block;white-space:nowrap;font-family:"Cambria Math","STIX Two Math","Latin Modern Math","Noto Serif",Georgia,"Times New Roman",serif;line-height:1.4;vertical-align:middle;-webkit-user-select:text;user-select:text}
+.tex{display:inline-block;white-space:nowrap;font-family:"Cambria Math","STIX Two Math","Latin Modern Math","Noto Serif",Georgia,"Times New Roman",serif;line-height:1.3;vertical-align:middle;-webkit-user-select:text;user-select:text}
 .tex i{font-style:italic}.tex .mr{font-style:normal}
-.tex .mo{margin:0 .22em}.tex .mt{font-family:system-ui,sans-serif;font-size:.8em}
+.tex .mo{margin:0 .22em}.tex .mu{margin:0 .04em 0 .02em}.tex .mt{font-family:system-ui,sans-serif;font-size:.8em}
 .tex .sp{display:inline-block;width:.17em}
-.tex .mf{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .14em;text-align:center}
-.tex .mfn{padding:0 .2em .1em;border-bottom:1.4px solid currentColor}
-.tex .mfd{padding:.1em .2em 0}
+.tex .mf{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .14em;text-align:center;line-height:1.2}
+.tex .mfn{padding:0 .22em .12em;border-bottom:1.4px solid currentColor}
+.tex .mfd{padding:.12em .22em 0}
 .tex .mf.nob .mfn{border-bottom:0}
-.tex .msq{display:inline-flex;align-items:stretch;vertical-align:middle}
-.tex .msi{align-self:flex-start;font-size:.6em;margin-right:-.3em}
-.tex .msr{font-size:1.2em;line-height:1;align-self:flex-end;margin-right:-.05em}
-.tex .msb{border-top:1.4px solid currentColor;padding:.08em .1em 0 .1em}
-.tex sup,.tex sub{font-size:.7em;line-height:0}
-.tex .mss{display:inline-flex;flex-direction:column;vertical-align:middle;font-size:.7em;line-height:1.15;margin-left:.04em}
+.tex .msp{display:inline-block;font-size:.72em;line-height:1.15;vertical-align:.7em;margin-left:.05em}
+.tex .msp.big{vertical-align:1em}
+.tex .msbn{display:inline-block;font-size:.72em;line-height:1.15;vertical-align:-.45em;margin-left:.05em}
+.tex .mss{display:inline-flex;flex-direction:column;vertical-align:middle;font-size:.72em;line-height:1.2;margin-left:.05em}
+.tex .msq{display:inline-flex;align-items:stretch;vertical-align:middle;margin:0 .06em}
+.tex .msi{align-self:flex-start;font-size:.62em;line-height:1;margin:.12em -.5em 0 0;padding-right:.1em;position:relative;z-index:1}
+.tex .msr{flex:0 0 auto;width:.85em;align-self:stretch;min-height:1.25em;overflow:visible}
+.tex .msb{border-top:1.4px solid currentColor;padding:.12em .12em 0 .06em;display:flex;align-items:center}
 .tex .mbig{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em}
 .tex .mbig .mop{font-size:1.7em;line-height:1}
 .tex .mbig .mup,.tex .mbig .mdn{font-size:.68em;line-height:1.15}
 .tex .mint{display:inline-flex;align-items:center;vertical-align:middle;margin-right:.1em}
 .tex .mi{font-size:2.1em;line-height:1;font-weight:200;transform:scaleX(.8)}
 .tex .mis{display:inline-flex;flex-direction:column;justify-content:space-between;font-size:.68em;margin-left:-.35em;min-height:2.6em;line-height:1.1}
-.tex .mp{display:inline-flex;align-items:center;vertical-align:middle}
-.tex .mp.tall>.dl{transform:scaleY(1.9);font-weight:200;margin:0 .06em}
+.tex .mp{display:inline-flex;align-items:stretch;vertical-align:middle}
+.tex .mpc{align-self:center}
+.tex .dl{flex:0 0 auto;width:.46em;min-height:1.3em;align-self:stretch;overflow:visible}
+.tex .dl.thin{width:.3em}
 .tex .mtb{border-collapse:collapse;margin:0 .15em;display:inline-table;vertical-align:middle}
 .tex .mtb td{padding:.12em .5em;text-align:center}
 .tex .mtb.l td{text-align:left}
@@ -750,6 +754,38 @@ nav .ind{border-radius:14px;transform:translateX(calc(var(--i,0) * 100%))}
  #v-units .frame{margin:0}
 }
 @media (orientation:landscape) and (min-width:520px) and (max-height:640px){#preview{display:block!important;max-height:44px;font-size:15px}}
+
+/* ===== Rechner: nie scrollen – Kurze Bildschirme (Hochformat) bekommen eine kompaktere Anzeige ===== */
+body[data-view=calc] main{overflow:hidden}
+#v-calc .kp{flex-basis:0;flex-grow:1}
+@media (orientation:portrait) and (max-height:700px){
+ header{padding:3px 8px}.tool{height:28px}.brand svg{width:26px;height:26px}
+ .frame{margin-bottom:4px}
+ #result{min-height:34px;max-height:64px;padding:4px 8px}
+ #result .ex,#result .ex-t{display:none}
+ #result .main{font-size:20px!important}
+ .actions{margin-top:4px;gap:4px}.btn{padding:5px 3px;font-size:clamp(10px,2.8vw,12px)}
+ #inp{padding:5px 8px;font-size:clamp(16px,4.4vw,22px)}.kb{width:34px;height:34px}
+ nav{margin:2px 8px calc(4px + env(safe-area-inset-bottom))}nav button{padding:3px 0 2px}
+}
+
+/* ===== Stabiles Layout: Änderungen im Anzeigebereich dürfen die Tastatur NIE bewegen ===== */
+#v-calc .dsp{flex:0 0 auto}
+#v-calc .dsp>.inner{flex:0 0 auto}
+#preview{display:block;flex:0 0 auto;height:clamp(40px,6.4vh,56px);margin:5px 1px 0;padding:2px 10px;overflow:hidden;animation:none;font-size:19px}
+#preview.empty{visibility:hidden}
+#preview .tex{vertical-align:top}
+#status{height:15px;line-height:15px;overflow:hidden;white-space:nowrap;flex:0 0 auto;margin:3px 3px}
+#result{flex:0 0 auto;height:clamp(84px,15vh,136px);min-height:0;max-height:none;overflow:auto}
+#result .ex{max-height:34px;overflow:hidden}
+.echoTex{max-height:3.6em;overflow:hidden}
+@media (orientation:portrait) and (max-height:700px){#result{height:64px}}
+@media (orientation:landscape) and (min-width:520px){
+ #v-calc .dsp>.inner{flex:1 1 auto}
+ #result{flex:1 1 auto;height:auto;min-height:60px}
+ #preview{height:46px}
+}
+@media (max-height:640px){#preview{display:none!important}}
 </style>
 </head>
 <body>
@@ -773,7 +809,7 @@ nav .ind{border-radius:14px;transform:translateX(calc(var(--i,0) * 100%))}
   <div class="frame pattern dsp"><div class="inner">
    <div class="irow"><span class="prompt">›</span><input id="inp" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="none" placeholder="Rechnung eingeben …">
    <button class="kb" id="kbBtn" aria-label="Systemtastatur">⌨</button></div>
-   <div id="preview"></div>
+   <div id="preview" class="empty"></div>
    <div id="status"></div>
    <div id="result"></div>
    <div class="actions"><button class="btn" id="copyBtn">Kopieren</button><button class="btn" id="useBtn">↥ Übernehmen</button><button class="btn del" id="clrBtn">Löschen</button></div>
@@ -892,7 +928,7 @@ function go(v){
   curView = v;
   const i = navBtns.findIndex(b => b.dataset.v === v);
   navBtns.forEach((b, j) => b.classList.toggle('on', j === i));
-  $('#ind').style.setProperty('--i', i);
+  $('#ind').style.setProperty('--i', i); document.body.dataset.view = v;
   $$('.view').forEach(x => x.classList.toggle('on', x.id === 'v-' + v));
   if (v === 'graph') graphShow();
   $('main').scrollTo({top:0});
@@ -950,10 +986,10 @@ let pvT = null, pvSeq = 0;
 function schedulePreview(){ clearTimeout(pvT); pvT = setTimeout(doPreview, 220); }
 async function doPreview(){
   const t = inp.value.trim(), box = $('#preview');
-  if (!t){ box.style.display = 'none'; box.innerHTML = ''; return; }
+  if (!t){ box.classList.add('empty'); return; }
   const my = ++pvSeq;
   try { const r = await post('/api/preview', {text:t, dec:st.dec}); if (my !== pvSeq) return;
-    if (r.tex){ box.innerHTML = texToHtml(r.tex, {dec:st.dec}); box.style.display = 'block'; } else box.style.display = 'none'; } catch(e){}
+    if (r.tex){ box.innerHTML = texToHtml(r.tex, {dec:st.dec}); box.classList.remove('empty'); fitTex(box, 19, 10, true); } else box.classList.add('empty'); } catch(e){}
 }
 inp.addEventListener('input', schedulePreview);
 function clearInp(){ inp.value = ''; schedulePreview(); }
@@ -993,11 +1029,10 @@ function showResult(r){
   m.style.fontSize = len > 34 ? '14px' : len > 22 ? '17px' : len > 12 ? '21px' : '26px';
   const f = r.tex ? mathEl(r.tex, 'resTex') : null;
   if (f){
-    const L = r.tex.length; f.style.fontSize = L > 90 ? '16px' : L > 50 ? '20px' : L > 25 ? '24px' : '28px';
     m.style.display = 'none';
     f.onclick = () => { f.style.display = 'none'; m.style.display = 'block'; };
     m.onclick = () => { m.style.display = 'none'; f.style.display = 'block'; };
-    box.append(f, m);
+    box.append(f, m); fitTex(f, 28, 13, false);
   } else box.append(m);
   (r.extra||[]).forEach(([l,t]) => box.append(el('div', l, 'lab'), el('pre', t, 'ext')));
   lastText = r.main; box.scrollTo({top:0});
@@ -1121,15 +1156,22 @@ function simpson(f,P,a,b,n){if(!isFinite(a)||!isFinite(b)||a===b)return 0;n=n||4
 /*GE-END*/
 /*TEX-BEGIN*/
 const TEX_GREEK={alpha:'α',beta:'β',gamma:'γ',delta:'δ',epsilon:'ε',varepsilon:'ε',zeta:'ζ',eta:'η',theta:'θ',vartheta:'ϑ',iota:'ι',kappa:'κ',lambda:'λ',mu:'μ',nu:'ν',xi:'ξ',pi:'π',rho:'ρ',sigma:'σ',tau:'τ',upsilon:'υ',phi:'φ',varphi:'φ',chi:'χ',psi:'ψ',omega:'ω',Gamma:'Γ',Delta:'Δ',Theta:'Θ',Lambda:'Λ',Xi:'Ξ',Pi:'Π',Sigma:'Σ',Phi:'Φ',Psi:'Ψ',Omega:'Ω'};
-const TEX_OP={cdot:'·',times:'×',pm:'±',mp:'∓',div:'÷',to:'→',rightarrow:'→',leftarrow:'←',leftrightarrow:'↔',Rightarrow:'⇒',Leftarrow:'⇐',Leftrightarrow:'⇔',implies:'⇒',le:'≤',leq:'≤',ge:'≥',geq:'≥',ne:'≠',neq:'≠',approx:'≈',sim:'∼',equiv:'≡',propto:'∝',in:'∈',notin:'∉',subset:'⊂',subseteq:'⊆',cup:'∪',cap:'∩',land:'∧',lor:'∨',mid:'∣',circ:'∘',star:'⋆',bullet:'•',wedge:'∧',vee:'∨',ll:'≪',gg:'≫',mapsto:'↦'};
+const TEX_BINOP={cdot:'·',times:'×',pm:'±',mp:'∓',div:'÷',wedge:'∧',vee:'∨',land:'∧',lor:'∨',cup:'∪',cap:'∩',circ:'∘',star:'⋆',bullet:'•'};
+const TEX_REL={to:'→',rightarrow:'→',leftarrow:'←',leftrightarrow:'↔',Rightarrow:'⇒',Leftarrow:'⇐',Leftrightarrow:'⇔',implies:'⇒',le:'≤',leq:'≤',ge:'≥',geq:'≥',ne:'≠',neq:'≠',approx:'≈',sim:'∼',equiv:'≡',propto:'∝',in:'∈',notin:'∉',subset:'⊂',subseteq:'⊆',mid:'∣',ll:'≪',gg:'≫',mapsto:'↦'};
 const TEX_ATOM={infty:'∞',partial:'∂',nabla:'∇',ldots:'…',cdots:'⋯',dots:'…',vdots:'⋮',degree:'°',prime:'′',emptyset:'∅',varnothing:'∅',forall:'∀',exists:'∃',neg:'¬',angle:'∠',triangle:'△',lbrace:'{',rbrace:'}',langle:'⟨',rangle:'⟩',lfloor:'⌊',rfloor:'⌋',lceil:'⌈',rceil:'⌉',hbar:'ℏ',ell:'ℓ',Re:'ℜ',Im:'ℑ',aleph:'ℵ',top:'⊤',bot:'⊥'};
 const TEX_FUNCS=new Set(['sin','cos','tan','cot','sec','csc','arcsin','arccos','arctan','sinh','cosh','tanh','coth','ln','log','exp','max','min','det','gcd','lcm','arg','sup','inf','deg','dim','ker','mod','lg','sgn','Pr']);
 const TEX_BIG={sum:'∑',prod:'∏',bigcup:'⋃',bigcap:'⋂',coprod:'∐'};
 const TEX_INT={int:'∫',iint:'∬',iiint:'∭',oint:'∮'};
 const TEX_BB={R:'ℝ',N:'ℕ',Z:'ℤ',Q:'ℚ',C:'ℂ',P:'ℙ'};
+/* Klammern/Striche als dehnbare SVG-Zeichen: passen sich der Höhe des Inhalts an */
+const TEX_DL={'(':'M8.5 1C2 10 2 30 8.5 39',')':'M1.5 1C8 10 8 30 1.5 39','[':'M8 1H2.5V39H8',']':'M2 1H7.5V39H2','|':'M5 0V40','‖':'M3.2 0V40M6.8 0V40',
+ '{':'M8 1C4 1 5 8 5 12 5 17 3 19 1.5 20 3 21 5 23 5 28 5 32 4 39 8 39','}':'M2 1C6 1 5 8 5 12 5 17 7 19 8.5 20 7 21 5 23 5 28 5 32 6 39 2 39',
+ '⌊':'M2.5 0V39H8','⌋':'M7.5 0V39H2','⌈':'M2.5 40V1H8','⌉':'M7.5 40V1H2','⟨':'M8 1L2 20L8 39','⟩':'M2 1L8 20L2 39'};
 function texToHtml(src,opt){
   opt=opt||{};
   const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const dl=ch=>{if(!ch)return '';const d=TEX_DL[ch];if(!d)return esc(ch);
+    return '<svg class="dl'+(ch==='|'?' thin':'')+'" viewBox="0 0 10 40" preserveAspectRatio="none"><path d="'+d+'" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>';};
   const toks=[];
   for(let k=0;k<src.length;){
     const c=src[k];
@@ -1162,51 +1204,53 @@ function texToHtml(src,opt){
     if(t.t==='cmd'&&t.v==='end'&&st.has('end'))return true;
     return false;};
   const S_CLOSE=new Set(['}']);
-  function seq(st){let h='';while(!isStop(st)){const b=p;h+=item();if(p===b)p++;}return h;}
+  function seq(st){let h='',prev='none';while(!isStop(st)){const b=p;const r=item(prev);h+=r.h;prev=r.c;if(p===b)p++;}return h;}
   function group(){const t=peek();if(!t)return '';if(t.t==='{'){p++;const h=seq(S_CLOSE);if(peek()&&peek().t==='}')p++;return h;}return atom().h;}
-  function chHtml(c){
-    if(/[A-Za-z]/.test(c))return up>0?'<span class="mr">'+c+'</span>':'<i>'+c+'</i>';
-    if(c==='+')return '<span class="mo">+</span>';
-    if(c==='-')return '<span class="mo">−</span>';
-    if(c==='='||c==='<'||c===">")return '<span class="mo">'+esc(c)+'</span>';
-    if(c==='*')return '∗';
-    if(c===',')return ',<span class="sp"></span>';
-    if(c==="'")return '′';
-    return esc(c);
+  function chAtom(c){
+    if(c==='+'||c==='-')return {h:'',k:'n',c:'bin',pm:c};
+    if(/[A-Za-z]/.test(c))return {h:up>0?'<span class="mr">'+c+'</span>':'<i>'+c+'</i>',k:'n',c:'val'};
+    if(c==='='||c==='<'||c==='>')return {h:'<span class="mo">'+esc(c)+'</span>',k:'n',c:'rel'};
+    if(c==='*')return {h:'<span class="mo">∗</span>',k:'n',c:'bin'};
+    if(c===',')return {h:',<span class="sp"></span>',k:'n',c:'bin'};
+    if(c==='('||c==='[')return {h:esc(c),k:'n',c:'open'};
+    if(c==="'")return {h:'′',k:'n',c:'val'};
+    return {h:esc(c),k:'n',c:'val'};
   }
   function delim(t){if(!t)return '';if(t.t==='ch')return t.v==='.'?'':t.v;if(t.t==='cmd'){if(t.v==='{'||t.v==='lbrace')return '{';if(t.v==='}'||t.v==='rbrace')return '}';if(t.v==='|')return '‖';if(TEX_ATOM[t.v])return TEX_ATOM[t.v];return '';}if(t.t==='{')return '{';if(t.t==='}')return '}';return '';}
   function skipBraced(){if(peek()&&peek().t==='{'){while(peek()&&peek().t!=='}')p++;p++;}}
   function envName(){let n='';if(peek()&&peek().t==='{'){p++;while(peek()&&peek().t!=='}'){const t=toks[p++];n+=(t.v||'');}p++;}return n;}
   function atom(){
-    const t=toks[p++];if(!t)return {h:'',k:'n'};
+    const t=toks[p++];if(!t)return {h:'',k:'n',c:'val'};
     switch(t.t){
-      case 'num':return {h:'<span class="mn">'+esc(opt.dec?t.v.replace('.',','):t.v)+'</span>',k:'n'};
-      case 'text':return {h:'<span class="mt">'+esc(t.v)+'</span>',k:'n'};
-      case '{':{const h=seq(S_CLOSE);if(peek()&&peek().t==='}')p++;return {h,k:'n'};}
-      case 'ch':return {h:chHtml(t.v),k:'n'};
+      case 'num':return {h:'<span class="mn">'+esc(opt.dec?t.v.replace('.',','):t.v)+'</span>',k:'n',c:'val'};
+      case 'text':return {h:'<span class="mt">'+esc(t.v)+'</span>',k:'n',c:'val'};
+      case '{':{const h=seq(S_CLOSE);if(peek()&&peek().t==='}')p++;return {h,k:'n',c:'val'};}
+      case 'ch':return chAtom(t.v);
       case 'cmd':return cmd(t.v);
-      case '&':case 'nl':return {h:'',k:'n'};
-      default:return {h:esc(t.t),k:'n'};
+      case '&':case 'nl':return {h:'',k:'n',c:'val'};
+      default:return {h:esc(t.t),k:'n',c:'val'};
     }
   }
+  const V=h=>({h,k:'n',c:'val'});
   function cmd(v){
-    if(TEX_GREEK[v])return {h:(v[0]===v[0].toUpperCase()?'<span class="mr">'+TEX_GREEK[v]+'</span>':'<i>'+TEX_GREEK[v]+'</i>'),k:'n'};
-    if(TEX_OP[v])return {h:'<span class="mo">'+TEX_OP[v]+'</span>',k:'n'};
-    if(TEX_ATOM[v])return {h:TEX_ATOM[v],k:'n'};
-    if(TEX_BIG[v]){while(peek()&&peek().t==='cmd'&&(peek().v==='limits'||peek().v==='nolimits'))p++;return {h:TEX_BIG[v],k:'big'};}
-    if(TEX_INT[v]){while(peek()&&peek().t==='cmd'&&(peek().v==='limits'||peek().v==='nolimits'))p++;return {h:TEX_INT[v],k:'int'};}
-    if(v==='lim'){while(peek()&&peek().t==='cmd'&&(peek().v==='limits'||peek().v==='nolimits'))p++;return {h:'<span class="mr">lim</span>',k:'big'};}
-    if(TEX_FUNCS.has(v))return {h:'<span class="mr">'+v+'</span><span class="sp"></span>',k:'n'};
+    if(TEX_GREEK[v])return V(v[0]===v[0].toUpperCase()?'<span class="mr">'+TEX_GREEK[v]+'</span>':'<i>'+TEX_GREEK[v]+'</i>');
+    if(TEX_BINOP[v])return {h:'<span class="mo">'+TEX_BINOP[v]+'</span>',k:'n',c:'bin'};
+    if(TEX_REL[v])return {h:'<span class="mo">'+TEX_REL[v]+'</span>',k:'n',c:'rel'};
+    if(TEX_ATOM[v])return V(TEX_ATOM[v]);
+    if(TEX_BIG[v]){while(peek()&&peek().t==='cmd'&&(peek().v==='limits'||peek().v==='nolimits'))p++;return {h:TEX_BIG[v],k:'big',c:'val'};}
+    if(TEX_INT[v]){while(peek()&&peek().t==='cmd'&&(peek().v==='limits'||peek().v==='nolimits'))p++;return {h:TEX_INT[v],k:'int',c:'val'};}
+    if(v==='lim'){while(peek()&&peek().t==='cmd'&&(peek().v==='limits'||peek().v==='nolimits'))p++;return {h:'<span class="mr">lim</span>',k:'big',c:'val'};}
+    if(TEX_FUNCS.has(v))return V('<span class="mr">'+v+'</span><span class="sp"></span>');
     switch(v){
-      case 'frac':case 'dfrac':case 'tfrac':{const a=group(),b=group();return {h:'<span class="mf"><span class="mfn">'+a+'</span><span class="mfd">'+b+'</span></span>',k:'n'};}
-      case 'binom':case 'dbinom':{const a=group(),b=group();return {h:'<span class="mp"><span class="dl">(</span><span class="mf nob"><span class="mfn">'+a+'</span><span class="mfd">'+b+'</span></span><span class="dl">)</span></span>',k:'n'};}
-      case 'sqrt':{let idx='';if(peek()&&peek().t==='ch'&&peek().v==='['){p++;while(peek()&&!(peek().t==='ch'&&peek().v===']'))idx+=item();p++;}
-        const b=group();return {h:'<span class="msq">'+(idx?'<sup class="msi">'+idx+'</sup>':'')+'<span class="msr">√</span><span class="msb">'+b+'</span></span>',k:'n'};}
+      case 'frac':case 'dfrac':case 'tfrac':{const a=group(),b=group();return V('<span class="mf"><span class="mfn">'+a+'</span><span class="mfd">'+b+'</span></span>');}
+      case 'binom':case 'dbinom':{const a=group(),b=group();return V('<span class="mp">'+dl('(')+'<span class="mpc"><span class="mf nob"><span class="mfn">'+a+'</span><span class="mfd">'+b+'</span></span></span>'+dl(')')+'</span>');}
+      case 'sqrt':{let idx='';if(peek()&&peek().t==='ch'&&peek().v==='['){p++;while(peek()&&!(peek().t==='ch'&&peek().v===']'))idx+=item('none').h;p++;}
+        const b=group();
+        return V('<span class="msq">'+(idx?'<span class="msi">'+idx+'</span>':'')+'<svg class="msr" viewBox="0 0 12 20" preserveAspectRatio="none"><path d="M.5 12L2.8 10.5L5.5 18.5L11.5 .8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg><span class="msb">'+b+'</span></span>');}
       case 'left':{const o=delim(toks[p++]);const inner=seq(new Set(['right']));let c='';
         if(peek()&&peek().t==='cmd'&&peek().v==='right'){p++;c=delim(toks[p++]);}
-        const tall=/class="(mf|mtb|mbig|mint|msq)/.test(inner);
-        return {h:'<span class="mp'+(tall?' tall':'')+'"><span class="dl">'+esc(o)+'</span><span class="mpc">'+inner+'</span><span class="dl">'+esc(c)+'</span></span>',k:'n'};}
-      case 'right':return {h:'',k:'n'};
+        return V('<span class="mp">'+dl(o)+'<span class="mpc">'+inner+'</span>'+dl(c)+'</span>');}
+      case 'right':return V('');
       case 'begin':{
         const env=envName();if(env==='array')skipBraced();
         const rows=[[]];
@@ -1222,43 +1266,54 @@ function texToHtml(src,opt){
         const body='<table class="mtb'+(left?' l':'')+'">'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</table>';
         const D={pmatrix:['(',')'],bmatrix:['[',']'],Bmatrix:['{','}'],vmatrix:['|','|'],Vmatrix:['‖','‖'],cases:['{','']};
         const d=D[env];
-        if(!d)return {h:body,k:'n'};
-        return {h:'<span class="mp tall"><span class="dl">'+esc(d[0])+'</span>'+body+'<span class="dl">'+esc(d[1])+'</span></span>',k:'n'};}
-      case 'operatorname':case 'mathrm':case 'mathsf':case 'mathit':case 'textrm':{up++;const h=group();up--;return {h:'<span class="mr">'+h+'</span>',k:'n'};}
-      case 'mathbf':case 'boldsymbol':case 'bm':{const h=group();return {h:'<b>'+h+'</b>',k:'n'};}
-      case 'mathbb':{const t=peek();let h='';if(t&&t.t==='{'){p++;while(peek()&&peek().t!=='}'){const q=toks[p++];h+=TEX_BB[q.v]||q.v||'';}p++;}else{const q=toks[p++];h=q?(TEX_BB[q.v]||q.v):'';}return {h:esc(h),k:'n'};}
-      case 'mathcal':case 'mathscr':case 'mathfrak':{const h=group();return {h:'<i>'+h+'</i>',k:'n'};}
-      case 'overline':case 'bar':{const h=group();return {h:'<span class="mov">'+h+'</span>',k:'n'};}
-      case 'underline':{const h=group();return {h:'<u>'+h+'</u>',k:'n'};}
-      case 'hat':case 'widehat':{const h=group();return {h:'<span class="mac"><span class="mah">^</span>'+h+'</span>',k:'n'};}
-      case 'vec':{const h=group();return {h:'<span class="mac"><span class="mah">→</span>'+h+'</span>',k:'n'};}
-      case 'tilde':case 'widetilde':{const h=group();return {h:'<span class="mac"><span class="mah">~</span>'+h+'</span>',k:'n'};}
-      case 'dot':{const h=group();return {h:'<span class="mac"><span class="mah">˙</span>'+h+'</span>',k:'n'};}
-      case 'displaystyle':case 'textstyle':case 'scriptstyle':case 'limits':case 'nolimits':case '!':case 'allowbreak':return {h:'',k:'n'};
-      case 'big':case 'Big':case 'bigg':case 'Bigg':case 'bigl':case 'bigr':case 'Bigl':case 'Bigr':case 'biggl':case 'biggr':{return {h:esc(delim(toks[p++])),k:'n'};}
-      case ',':case ';':case ':':case ' ':case 'thinspace':case 'medspace':return {h:'<span class="sp"></span>',k:'n'};
-      case 'quad':return {h:'<span class="sp" style="width:1em"></span>',k:'n'};
-      case 'qquad':return {h:'<span class="sp" style="width:2em"></span>',k:'n'};
-      case '{':return {h:'{',k:'n'};case '}':return {h:'}',k:'n'};
-      case '|':return {h:'‖',k:'n'};
-      case '%':case '#':case '&':case '_':case '$':return {h:v,k:'n'};
-      default:return {h:'<span class="mr">\\'+esc(v)+'</span>',k:'n'};
+        if(!d)return V(body);
+        return V('<span class="mp">'+dl(d[0])+'<span class="mpc">'+body+'</span>'+dl(d[1])+'</span>');}
+      case 'operatorname':case 'mathrm':case 'mathsf':case 'mathit':case 'textrm':{up++;const h=group();up--;return V('<span class="mr">'+h+'</span>');}
+      case 'mathbf':case 'boldsymbol':case 'bm':{const h=group();return V('<b>'+h+'</b>');}
+      case 'mathbb':{const t=peek();let h='';if(t&&t.t==='{'){p++;while(peek()&&peek().t!=='}'){const q=toks[p++];h+=TEX_BB[q.v]||q.v||'';}p++;}else{const q=toks[p++];h=q?(TEX_BB[q.v]||q.v):'';}return V(esc(h));}
+      case 'mathcal':case 'mathscr':case 'mathfrak':{const h=group();return V('<i>'+h+'</i>');}
+      case 'overline':case 'bar':{const h=group();return V('<span class="mov">'+h+'</span>');}
+      case 'underline':{const h=group();return V('<u>'+h+'</u>');}
+      case 'hat':case 'widehat':{const h=group();return V('<span class="mac"><span class="mah">^</span>'+h+'</span>');}
+      case 'vec':{const h=group();return V('<span class="mac"><span class="mah">→</span>'+h+'</span>');}
+      case 'tilde':case 'widetilde':{const h=group();return V('<span class="mac"><span class="mah">~</span>'+h+'</span>');}
+      case 'dot':{const h=group();return V('<span class="mac"><span class="mah">˙</span>'+h+'</span>');}
+      case 'displaystyle':case 'textstyle':case 'scriptstyle':case 'limits':case 'nolimits':case '!':case 'allowbreak':return V('');
+      case 'big':case 'Big':case 'bigg':case 'Bigg':case 'bigl':case 'bigr':case 'Bigl':case 'Bigr':case 'biggl':case 'biggr':{return V(dl(delim(toks[p++])));}
+      case ',':case ';':case ':':case ' ':case 'thinspace':case 'medspace':return V('<span class="sp"></span>');
+      case 'quad':return V('<span class="sp" style="width:1em"></span>');
+      case 'qquad':return V('<span class="sp" style="width:2em"></span>');
+      case '{':return V('{');case '}':return V('}');
+      case '|':return V(dl('‖'));
+      case '%':case '#':case '&':case '_':case '$':return V(v);
+      default:return V('<span class="mr">\\'+esc(v)+'</span>');
     }
   }
   function scriptArg(){const t=peek();if(!t)return '';if(t.t==='{'){p++;const h=seq(S_CLOSE);if(peek()&&peek().t==='}')p++;return h;}return atom().h;}
-  function item(){
+  function item(prev){
     const a=atom();let sub=null,sup=null;
+    if(a.pm){const un=(prev==='none'||prev==='bin'||prev==='rel'||prev==='open');a.h='<span class="'+(un?'mu':'mo')+'">'+(a.pm==='-'?'−':'+')+'</span>';}
     while(peek()&&(peek().t==='^'||peek().t==='_')){const k=toks[p++].t;const arg=scriptArg();if(k==='^')sup=arg;else sub=arg;}
-    if(a.k==='int'){return '<span class="mint"><span class="mi">'+a.h+'</span>'+((sub!==null||sup!==null)?'<span class="mis"><span>'+(sup||'')+'</span><span>'+(sub||'')+'</span></span>':'')+'</span>';}
-    if(a.k==='big'){if(sub===null&&sup===null)return '<span class="mbig"><span class="mop">'+a.h+'</span></span>';return '<span class="mbig"><span class="mup">'+(sup||'')+'</span><span class="mop">'+a.h+'</span><span class="mdn">'+(sub||'')+'</span></span>';}
-    if(sub!==null&&sup!==null)return a.h+'<span class="mss"><span>'+sup+'</span><span>'+sub+'</span></span>';
-    if(sup!==null)return a.h+'<sup>'+sup+'</sup>';
-    if(sub!==null)return a.h+'<sub>'+sub+'</sub>';
-    return a.h;
+    let h;
+    if(a.k==='int'){h='<span class="mint"><span class="mi">'+a.h+'</span>'+((sub!==null||sup!==null)?'<span class="mis"><span>'+(sup||'')+'</span><span>'+(sub||'')+'</span></span>':'')+'</span>';}
+    else if(a.k==='big'){h=(sub===null&&sup===null)?'<span class="mbig"><span class="mop">'+a.h+'</span></span>':'<span class="mbig"><span class="mup">'+(sup||'')+'</span><span class="mop">'+a.h+'</span><span class="mdn">'+(sub||'')+'</span></span>';}
+    else if(sub!==null&&sup!==null)h=a.h+'<span class="mss"><span>'+sup+'</span><span>'+sub+'</span></span>';
+    else if(sup!==null)h=a.h+'<span class="msp'+(/class="(mf|msq|mp)[ "]/.test(sup)?' big':'')+'">'+sup+'</span>';
+    else if(sub!==null)h=a.h+'<span class="msbn">'+sub+'</span>';
+    else h=a.h;
+    return {h,c:(sup!==null||sub!==null)?'val':a.c};
   }
   return '<span class="tex">'+seq(new Set())+'</span>';
 }
+/* Schrift so weit verkleinern, bis die Formel in die Box passt (Breite, optional Höhe) */
+function fitTex(box,px,min,withHeight){
+  box.style.fontSize=px+'px';
+  if(!box.clientWidth)return;
+  let s=px;
+  while(s>min&&(box.scrollWidth>box.clientWidth+1||(withHeight&&box.scrollHeight>box.clientHeight+1))){s-=1;box.style.fontSize=s+'px';}
+}
 /*TEX-END*/
+
 
 
 /* ===== Graph-Oberfläche ===== */
